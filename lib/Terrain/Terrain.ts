@@ -1,6 +1,5 @@
 import { Game } from '../Game'
 import { EntityConfig } from '../Scene/types'
-import { SpriteSheet } from '../SpriteSheet'
 
 export default class Terrain {
   game: Game

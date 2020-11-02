@@ -1,8 +1,9 @@
 import { JSONCoords } from '../XYCoords'
 import Entity from './Entity'
+import { EntityMetadata } from './types'
 
-export default class Scene<EntityMetadata extends {} = {}> {
-  entities = new Set<Entity<EntityMetadata>>()
+export default class Scene<Metadata extends EntityMetadata> {
+  entities = new Set<Entity<Metadata>>()
 
   width: number
   height: number

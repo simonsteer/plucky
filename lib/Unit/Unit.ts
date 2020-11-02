@@ -2,15 +2,19 @@ import { DeltaConstraint } from '../DeltaConstraint'
 import { Game } from '../Game'
 import { Grid } from '../Grid'
 import { Team } from '../Team'
-import { EntityConfig } from '../Scene'
-import { UnitConfig, UnitMovement } from './types'
+import { UnitConfig } from './types'
+import { SpriteSheet } from '../SpriteSheet'
 
 export default class Unit {
   game: Game
 
-  movement: UnitMovement
+  movement: {
+    footprint: DeltaConstraint
+    pattern: DeltaConstraint
+    steps: number
+  }
   team: Team
-  sprite?: EntityConfig['sprite']
+  sprite?: { sheet: SpriteSheet; frames: number[] }
 
   constructor({
     team,

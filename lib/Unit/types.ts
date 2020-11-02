@@ -1,5 +1,5 @@
 import { DeltaConstraint } from '../DeltaConstraint'
-import { EntityConfig } from '../Scene/types'
+import { EntityConfig, EntityMetadata } from '../Scene/types'
 import { Team } from '../Team'
 
 export type UnitMovement = {
@@ -11,5 +11,5 @@ export type UnitMovement = {
 export type UnitConfig = {
   team: Team
   movement?: Partial<UnitMovement>
-  sprite?: EntityConfig['sprite']
+  sprite?: EntityConfig<EntityMetadata>['sprite']
 }

@@ -1,7 +1,7 @@
-import { DijkstraMap, DijkstraObject } from './types'
+import { PathfinderMap, PathfinderObject } from './types'
 
-export default function toDeepMap(source: DijkstraObject) {
-  const map: DijkstraMap = new Map()
+export default function toDeepMap(source: PathfinderObject) {
+  const map: PathfinderMap = new Map()
   const keys = Object.keys(source)
 
   keys.forEach(key => {

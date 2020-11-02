@@ -3,9 +3,9 @@ import { Game } from '../Game'
 import { Grid } from '../Grid'
 import { Entity } from '../Scene'
 import { JSONCoords } from '../XYCoords'
-import { ZoneData } from './types'
+import { ZoneMetadata } from './types'
 
-export default class Zone extends Entity<ZoneData> {
+export default class Zone extends Entity<ZoneMetadata> {
   game: Game
 
   constructor(
@@ -16,7 +16,6 @@ export default class Zone extends Entity<ZoneData> {
     super({
       origin,
       footprint,
-      fillStyle: 'rgba(255,100,100,0.2)',
       metadata: { grid, type: 'zone' },
     })
   }
@@ -32,11 +31,4 @@ export default class Zone extends Entity<ZoneData> {
 
   area = () =>
     this.footprint.adjacent(this.origin).filter(this.grid.withinBounds)
-
-  move = (delta: JSONCoords) => {
-    this.origin.y += delta.y
-    this.origin.x += delta.x
-
-    return this
-  }
 }

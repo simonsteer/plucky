@@ -4,12 +4,12 @@ export default class XYCoords {
   x: number
   y: number
 
-  constructor({ x, y }) {
+  constructor({ x, y }: JSONCoords) {
     this.x = x
     this.y = y
   }
 
-  static deltas(coordsA, coordsB) {
+  static deltas(coordsA: JSONCoords, coordsB: JSONCoords) {
     return {
       x: coordsA.x - coordsB.x,
       y: coordsA.y - coordsB.y,
@@ -26,7 +26,9 @@ export default class XYCoords {
   }
 
   static match(coords_a: JSONCoords, coords_b: JSONCoords) {
-    return coords_a.x === coords_b.x && coords_a.y === coords_b.y
+    return (['x', 'y'] as const).every(
+      axis => coords_a[axis] === coords_b[axis]
+    )
   }
 
   static hashMany(...coords: JSONCoords[]) {

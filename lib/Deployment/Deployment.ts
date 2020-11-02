@@ -1,14 +1,14 @@
-import Dijkstra, { DijkstraObject } from '../Dijkstra'
+import { Pathfinder, PathfinderObject } from '../Pathfinder'
 import { Unit } from '../Unit'
 import { Grid } from '../Grid'
 import { XYCoords, JSONCoords } from '../XYCoords'
 import { getAreaCostForUnit } from './utils'
 import { Game } from '../Game'
 import { Entity } from '../Scene'
-import { DeploymentData } from './types'
+import { DeploymentMetadata } from './types'
 
-export default class Deployment extends Entity<DeploymentData> {
-  private pathfinder: Dijkstra
+export default class Deployment extends Entity<DeploymentMetadata> {
+  private pathfinder: Pathfinder
 
   constructor(grid: Grid, unit: Unit, x: number, y: number) {
     super({
@@ -17,7 +17,7 @@ export default class Deployment extends Entity<DeploymentData> {
       metadata: { type: 'deployment', grid, unit },
       sprite: unit.sprite,
     })
-    this.pathfinder = new Dijkstra(this.createDijkstraGraph())
+    this.pathfinder = new Pathfinder(this.createDijkstraGraph())
   }
 
   get unit() {
@@ -45,7 +45,7 @@ export default class Deployment extends Entity<DeploymentData> {
   }
 
   getPath = (to: JSONCoords, from = this.origin) =>
-    this.pathfinder.path(from, to)
+    this.pathfinder.find(from, to)
 
   getReachableCoordinates = (
     from = this.origin,
@@ -73,7 +73,7 @@ export default class Deployment extends Entity<DeploymentData> {
   private createDijkstraGraph() {
     const { pattern, footprint } = this.unit.movement
 
-    const graph: DijkstraObject = {}
+    const graph: PathfinderObject = {}
 
     this.grid.mapTiles(({ metadata: { terrain }, origin }) => {
       const fromArea = footprint.adjacent(origin)

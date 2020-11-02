@@ -2,12 +2,12 @@ import { XYCoords, JSONCoords } from '../XYCoords'
 import Queue from './PriorityQueue'
 import removeDeepFromMap from './removeDeepFromMap'
 import toDeepMap from './toDeepMap'
-import { DijkstraMap, DijkstraObject } from './types'
+import { PathfinderMap, PathfinderObject } from './types'
 
 /** Creates and manages a graph */
-export default class Graph {
-  graph: DijkstraMap
-  constructor(graph?: DijkstraMap | DijkstraObject) {
+export default class Pathfinder {
+  graph: PathfinderMap
+  constructor(graph?: PathfinderMap | PathfinderObject) {
     if (graph instanceof Map) {
       this.graph = graph
     } else if (graph) {
@@ -17,7 +17,7 @@ export default class Graph {
     }
   }
 
-  addNode(name: string, neighbors: DijkstraMap | DijkstraObject) {
+  addNode(name: string, neighbors: PathfinderMap | PathfinderObject) {
     const nodes = neighbors instanceof Map ? neighbors : toDeepMap(neighbors)
     this.graph.set(name, nodes)
 
@@ -29,7 +29,7 @@ export default class Graph {
     return this
   }
 
-  path(
+  find(
     start: JSONCoords,
     goal: JSONCoords
   ): { path: null | JSONCoords[]; cost: number } {
@@ -54,7 +54,7 @@ export default class Graph {
     // Run until we have visited every node in the frontier
     while (!frontier.empty) {
       // Get the node in the frontier with the lowest cost (`priority`)
-      const node = frontier.next()
+      const node = frontier.next()!
 
       // When the node with the lowest cost in the frontier in our goal node,
       // we can compute the path and exit the loop
@@ -65,7 +65,7 @@ export default class Graph {
         let nodeKey = node.key
         while (previous.has(nodeKey)) {
           path.push(XYCoords.parse(nodeKey))
-          nodeKey = previous.get(nodeKey)
+          nodeKey = previous.get(nodeKey)!
         }
 
         break
@@ -91,7 +91,7 @@ export default class Graph {
           return
         }
 
-        const frontierPriority = frontier.get(nNode).priority
+        const frontierPriority = frontier.get(nNode)!.priority
         const nodeCost = node.priority + cost
 
         // Otherwise we only update the cost of this node in the frontier when

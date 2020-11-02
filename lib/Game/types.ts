@@ -1,9 +1,9 @@
-import { DeploymentData } from '../Deployment'
-import { TileData } from '../Grid'
+import { DeploymentMetadata } from '../Deployment'
+import { TileMetadata } from '../Tile'
 import { Entity } from '../Scene'
-import { ZoneData } from '../Zone'
+import { ZoneMetadata } from '../Zone'
 
 export type GameEntity =
-  | Entity<DeploymentData>
-  | Entity<TileData>
-  | Entity<ZoneData>
+  | Entity<DeploymentMetadata>
+  | Entity<TileMetadata>
+  | Entity<ZoneMetadata>

@@ -1,4 +1,4 @@
-import { DijkstraMap } from './types'
+import { PathfinderMap } from './types'
 
 /**
  * Removes a key and all of its references from a map.
@@ -9,8 +9,8 @@ import { DijkstraMap } from './types'
  * @param {string}  key - Key to remove from the map
  * @return {Map}    New map without the passed key
  */
-export default function removeDeepFromMap(map: DijkstraMap, key: string) {
-  const newMap: DijkstraMap = new Map()
+export default function removeDeepFromMap(map: PathfinderMap, key: string) {
+  const newMap: PathfinderMap = new Map()
 
   for (const [aKey, val] of map) {
     if (aKey !== key && val instanceof Map) {

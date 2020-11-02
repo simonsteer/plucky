@@ -1,13 +1,12 @@
+import { EventEmitter } from 'events'
 import { getCoordinatesFromClick, link } from './utils'
 import { Grid } from '../Grid'
 import { Team } from '../Team'
 import { Zone } from '../Zone'
 import { Terrain } from '../Terrain'
 import { Unit } from '../Unit'
-import { EventEmitter } from 'events'
-import { Scene } from '../Scene'
+import { EntityMetadata, Scene } from '../Scene'
 import { Loop } from '../Loop'
-import { GameEntity } from './types'
 
 export default class Game extends EventEmitter {
   Grid: typeof Grid
@@ -24,7 +23,8 @@ export default class Game extends EventEmitter {
     BattleTurnStart: Symbol(),
     BattleTurnEnd: Symbol(),
     BattleEnd: Symbol(),
-    SceneEntitiesClicked: Symbol(),
+    SceneClicked: Symbol(),
+    SceneMouseMove: Symbol(),
   }
 
   canvas: HTMLCanvasElement
@@ -64,9 +64,9 @@ export default class Game extends EventEmitter {
 
   private loop: Loop
 
-  currentScene?: Scene
+  currentScene?: Scene<EntityMetadata>
 
-  loadScene = (scene: Scene) => {
+  loadScene = (scene: Scene<EntityMetadata>) => {
     this.currentScene = scene
     if (!this.loop.didStart) {
       this.loop.run()
@@ -75,7 +75,6 @@ export default class Game extends EventEmitter {
 
   private handleClick = (e: MouseEvent) => {
     if (!this.currentScene) return
-
     const coordinates = getCoordinatesFromClick(
       e.offsetX,
       e.offsetY,
@@ -86,7 +85,23 @@ export default class Game extends EventEmitter {
       e.origin.match(coordinates)
     )
     if (entities.length) {
-      this.emit(Game.Events.SceneEntitiesClicked, this.currentScene, entities)
+      this.emit(Game.Events.SceneClicked, this.currentScene, { entities })
+    }
+  }
+
+  private handleMouseMove = (e: MouseEvent) => {
+    if (!this.currentScene) return
+    const coordinates = getCoordinatesFromClick(
+      e.offsetX,
+      e.offsetY,
+      this.viewportDimensions.cellSize
+    )
+
+    const entities = this.currentScene.filterEntities(e =>
+      e.origin.match(coordinates)
+    )
+    if (entities.length) {
+      this.emit(Game.Events.SceneMouseMove, this.currentScene, { entities })
     }
   }
 
@@ -100,5 +115,6 @@ export default class Game extends EventEmitter {
     this.canvas = canvas
     this.context = context
     this.canvas.addEventListener('click', this.handleClick)
+    this.canvas.addEventListener('mousemove', this.handleMouseMove)
   }
 }

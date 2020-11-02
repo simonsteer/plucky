@@ -19,9 +19,6 @@ export default class SpriteSheet {
     this.image.src = src
   }
 
-  private prevHash: string | undefined
-  private frameOffset = 0
-
   render = (
     context: CanvasRenderingContext2D,
     x: number,

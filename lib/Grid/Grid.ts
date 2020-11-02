@@ -1,47 +1,49 @@
 import { DeltaConstraint } from '../DeltaConstraint'
-import { Deployment, DeploymentData } from '../Deployment'
+import { Deployment, DeploymentMetadata } from '../Deployment'
 import { Game } from '../Game'
 import { Entity, Scene } from '../Scene'
+import { Tile, TileMetadata } from '../Tile'
 import { Unit } from '../Unit'
 import { JSONCoords } from '../XYCoords'
-import { GridConfig, TileData } from './types'
+import { GridConfig } from './types'
 import { getGridDimensions } from './utils'
 
-export default class Grid extends Scene<TileData | DeploymentData> {
+export default class Grid extends Scene<TileMetadata | DeploymentMetadata> {
   game: Game
+
+  constructor({ tiles }: GridConfig) {
+    super(getGridDimensions(tiles))
+
+    tiles.forEach((row, rowIndex) =>
+      row.forEach((terrain, columnIndex) =>
+        this.entities.add(
+          new Tile({
+            terrain,
+            coordinates: { x: columnIndex, y: rowIndex },
+          })
+        )
+      )
+    )
+  }
 
   deployments() {
     return this.filterEntities(
       e => e.metadata.type === 'deployment'
     ) as Deployment[]
   }
+
   teams() {
     return this.deployments().map(d => d.unit.team)
   }
+
   tiles() {
     return this.filterEntities(e => e.metadata.type === 'tile') as Entity<
-      TileData
+      TileMetadata
     >[]
   }
+
   units() {
     return this.deployments().map(d => d.unit)
-  }
-
-  constructor({ tiles }: GridConfig) {
-    super(getGridDimensions(tiles))
-
-    tiles.forEach((row, rowIndex) =>
-      row.forEach(({ terrain }, columnIndex) =>
-        this.entities.add(
-          new Entity({
-            metadata: { terrain, type: 'tile' },
-            footprint: new DeltaConstraint([{ x: 0, y: 0 }]),
-            sprite: terrain.sprite,
-            origin: { x: columnIndex, y: rowIndex },
-          })
-        )
-      )
-    )
   }
 
   outOfBounds = (c: JSONCoords) => !this.withinBounds(c)
@@ -49,7 +51,7 @@ export default class Grid extends Scene<TileData | DeploymentData> {
   withinBounds = ({ x, y }: JSONCoords) =>
     x >= 0 && x < this.width && y >= 0 && y < this.height
 
-  mapTiles<R extends any>(callback: (tile: Entity<TileData>) => R): R[] {
+  mapTiles<R extends any>(callback: (tile: Entity<TileMetadata>) => R): R[] {
     return this.tiles().map(callback)
   }
 
