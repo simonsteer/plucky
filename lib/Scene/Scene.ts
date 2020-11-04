@@ -2,7 +2,7 @@ import { JSONCoords } from '../XYCoords'
 import Entity from './Entity'
 import { EntityMetadata } from './types'
 
-export default class Scene<Metadata extends EntityMetadata> {
+export default class Scene<Metadata extends EntityMetadata = EntityMetadata> {
   entities = new Set<Entity<Metadata>>()
 
   width: number
@@ -12,17 +12,17 @@ export default class Scene<Metadata extends EntityMetadata> {
     this.height = height
   }
 
-  mapEntities = <R extends any = Entity<EntityMetadata>>(
+  map = <R extends any = Entity<EntityMetadata>>(
     callback = (entity: Entity<EntityMetadata>) => entity as R
   ) => [...this.entities].map(callback)
 
-  filterEntities = <R extends boolean>(
+  filter = <R extends boolean>(
     callback = (entity: Entity<EntityMetadata>) => true as R
   ) => [...this.entities].filter(callback)
 
-  entitiesWithOrigin = (origin: JSONCoords) =>
-    this.filterEntities(e => e.origin.match(origin))
+  find = <R extends boolean>(callback: (entity: Entity<EntityMetadata>) => R) =>
+    this.find(callback)
 
   entitiesOccupying = (coordinate: JSONCoords) =>
-    this.filterEntities(e => e.footprint.applies(e.origin, coordinate))
+    this.filter(e => e.footprint.applies(e.origin, coordinate))
 }

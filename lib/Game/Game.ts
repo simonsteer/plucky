@@ -62,7 +62,7 @@ export default class Game extends EventEmitter {
     this.loop = new Loop(this)
   }
 
-  private loop: Loop
+  loop: Loop
 
   currentScene?: Scene<EntityMetadata>
 
@@ -81,9 +81,7 @@ export default class Game extends EventEmitter {
       this.viewportDimensions.cellSize
     )
 
-    const entities = this.currentScene.filterEntities(e =>
-      e.origin.match(coordinates)
-    )
+    const entities = this.currentScene.filter(e => e.origin.match(coordinates))
     if (entities.length) {
       this.emit(Game.Events.SceneClicked, this.currentScene, { entities })
     }
@@ -97,9 +95,7 @@ export default class Game extends EventEmitter {
       this.viewportDimensions.cellSize
     )
 
-    const entities = this.currentScene.filterEntities(e =>
-      e.origin.match(coordinates)
-    )
+    const entities = this.currentScene.filter(e => e.origin.match(coordinates))
     if (entities.length) {
       this.emit(Game.Events.SceneMouseMove, this.currentScene, { entities })
     }

@@ -6,9 +6,17 @@ export interface EntityMetadata {
   type: string
 }
 
+export type EntitySprite = {
+  sheet: SpriteSheet
+  state?: string
+  highlight?: string
+  xOffset: number
+  yOffset: number
+}
+
 export type EntityConfig<Metadata extends EntityMetadata> = {
   footprint: DeltaConstraint
   origin: JSONCoords
-  sprite?: { sheet: SpriteSheet; frames: number[] }
+  sprite?: Omit<EntitySprite, 'xOffset' | 'yOffset'>
   metadata: Metadata
 }

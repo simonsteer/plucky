@@ -1,12 +1,12 @@
 import { Game } from '../Game'
-import { EntityConfig } from '../Scene/types'
+import { EntityConfig, EntityMetadata } from '../Scene/types'
 
 export default class Terrain {
   game: Game
 
   fillStyle: string
   baseCost: number
-  sprite: EntityConfig['sprite']
+  sprite: EntityConfig<EntityMetadata>['sprite']
 
   readonly costOverride = Symbol()
 
@@ -15,7 +15,7 @@ export default class Terrain {
     sprite,
   }: {
     baseCost?: number
-    sprite: EntityConfig['sprite']
+    sprite: EntityConfig<EntityMetadata>['sprite']
   }) {
     this.baseCost = baseCost
     this.sprite = sprite

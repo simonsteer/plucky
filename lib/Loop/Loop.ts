@@ -1,17 +1,20 @@
 import { Game } from '../Game'
 import { GameEntity } from '../Game/types'
 
-const FPS = 60
-
 export default class Loop {
   start: number | undefined
   game: Game
+  private effects: (() => boolean)[] = []
 
   constructor(game: Game) {
     this.game = game
   }
 
   didStart = false
+
+  do(callback: () => boolean) {
+    this.effects.push(callback)
+  }
 
   run = (timestamp = Date.now()) => {
     if (!this.didStart) this.didStart = true
@@ -27,7 +30,7 @@ export default class Loop {
       this.start = timestamp
     }
 
-    const { tile, deployment, zone } = scene.mapEntities().reduce(
+    const { tile, deployment, zone } = scene.map().reduce(
       (acc, entity: GameEntity) => {
         acc[entity.metadata.type].push(entity)
         return acc
@@ -42,22 +45,25 @@ export default class Loop {
     ;[tile, deployment, zone].forEach(layer => {
       const { cellSize } = this.game.viewportDimensions
 
+      this.effects = this.effects.filter(effect => effect())
       layer.forEach((entity: GameEntity) => {
         if (!entity.sprite) return
 
         const x = entity.origin.x * cellSize
         const y = entity.origin.y * cellSize
 
-        const { sheet, frames } = entity.sprite
-        const frameToRender = frames[entity.sprite.frameIndex]
+        const {
+          sheet,
+          state,
+          highlight,
+          xOffset = 0,
+          yOffset = 0,
+        } = entity.sprite
 
-        sheet.render(this.game.context, x, y, frameToRender)
-        if (frames.length) {
-          if (entity.sprite.frameIndex === frames.length - 1) {
-            entity.sprite.frameIndex = 0
-          } else {
-            entity.sprite.frameIndex++
-          }
+        sheet.render(this.game.context, x + xOffset, y + yOffset, state)
+        if (highlight) {
+          this.game.context.fillStyle = highlight
+          this.game.context.fillRect(x, y, cellSize, cellSize)
         }
       })
     })

@@ -14,7 +14,7 @@ export default class Unit {
     steps: number
   }
   team: Team
-  sprite?: { sheet: SpriteSheet; frames: number[] }
+  sprite: SpriteSheet
 
   constructor({
     team,

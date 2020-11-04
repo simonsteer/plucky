@@ -3,19 +3,18 @@ import { Unit } from '../Unit'
 import { Grid } from '../Grid'
 import { XYCoords, JSONCoords } from '../XYCoords'
 import { getAreaCostForUnit } from './utils'
-import { Game } from '../Game'
 import { Entity } from '../Scene'
 import { DeploymentMetadata } from './types'
 
 export default class Deployment extends Entity<DeploymentMetadata> {
   private pathfinder: Pathfinder
 
-  constructor(grid: Grid, unit: Unit, x: number, y: number) {
+  constructor(grid: Grid, unit: Unit, x: number, y: number, state = 'default') {
     super({
       origin: { x, y },
       footprint: unit.movement.footprint,
       metadata: { type: 'deployment', grid, unit },
-      sprite: unit.sprite,
+      sprite: { sheet: unit.sprite, state },
     })
     this.pathfinder = new Pathfinder(this.createDijkstraGraph())
   }
@@ -23,9 +22,11 @@ export default class Deployment extends Entity<DeploymentMetadata> {
   get unit() {
     return this.metadata.unit
   }
-
   get grid() {
     return this.metadata.grid
+  }
+  get game() {
+    return this.grid.game
   }
 
   private get movementPool() {
@@ -35,11 +36,39 @@ export default class Deployment extends Entity<DeploymentMetadata> {
   move = (path: JSONCoords[]) => {
     if (!path.length) return this
 
-    const { x, y } = path[path.length - 1]
-    this.origin.x = x
-    this.origin.y = y
+    const { cellSize } = this.grid.game.viewportDimensions
+    const targets = path.map(coordinates => {
+      let { x, y } = XYCoords.deltas(coordinates, this.origin)
+      x = x * cellSize
+      y = y * cellSize
 
-    this.unit.game.emit(Game.Events.DeploymentMovement, path)
+      return { x, y }
+    })
+
+    let i = 0
+    this.game.loop.do(() => {
+      // if there is no sprite to animate, exit the loop
+      if (!this.sprite) return false
+
+      const { xOffset, yOffset } = this.sprite
+      const target = targets[i]
+      const xMatches = xOffset === target.x
+      const yMatches = yOffset === target.y
+
+      if (!xMatches) this.sprite.xOffset += target.x > xOffset ? 1 : -1
+      if (!yMatches) this.sprite.yOffset += target.y > yOffset ? 1 : -1
+      if (xMatches && yMatches) i++
+
+      const continueLoop = i !== path.length
+      if (!continueLoop) {
+        this.origin.x = path[path.length - 1].x
+        this.origin.y = path[path.length - 1].y
+        this.sprite.xOffset = 0
+        this.sprite.yOffset = 0
+      }
+
+      return continueLoop
+    })
 
     return this
   }
@@ -48,15 +77,11 @@ export default class Deployment extends Entity<DeploymentMetadata> {
     this.pathfinder.find(from, to)
 
   getReachableCoordinates = (
-    from = this.origin,
+    from = this.origin.raw,
     stepsLeft = this.movementPool
   ) =>
     this.unit.movement.pattern.adjacent(from).reduce((acc, target) => {
       const area = this.unit.movement.footprint.adjacent(target)
-      if (area.some(this.grid.outOfBounds)) {
-        return acc
-      }
-
       const areaCost = getAreaCostForUnit(this.grid, area, this.unit)
       if (areaCost > stepsLeft) {
         return acc
@@ -64,7 +89,9 @@ export default class Deployment extends Entity<DeploymentMetadata> {
 
       acc.push(target.raw)
       if (stepsLeft - areaCost > 0) {
-        acc.push(...this.getReachableCoordinates(target, stepsLeft - areaCost))
+        acc.push(
+          ...this.getReachableCoordinates(target.raw, stepsLeft - areaCost)
+        )
       }
 
       return acc
@@ -95,15 +122,14 @@ export default class Deployment extends Entity<DeploymentMetadata> {
           destinationArea,
           this.unit
         )
-        if (destinationCost > this.movementPool) {
-          return acc
+        if (destinationCost <= this.movementPool) {
+          acc.push(destination)
         }
 
         return acc
       }, [] as XYCoords[])
 
       if (!graph[fromHash]) graph[fromHash] = {}
-
       reachable.forEach(reachableCoordinate => {
         const toHash = XYCoords.hash(reachableCoordinate)
         graph[fromHash][toHash] =
