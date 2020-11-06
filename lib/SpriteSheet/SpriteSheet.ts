@@ -8,6 +8,7 @@ export default class SpriteSheet {
   loaded: boolean
   src: string
   states: SpriteSheetConfig['states']
+  onload?: () => void
 
   constructor({
     src,
@@ -19,36 +20,35 @@ export default class SpriteSheet {
     this.image = new Image()
     this.numFrames = numFrames
     this.src = src
+    this.onload = onload
     this.image.onload = () => {
       this.height = this.image.naturalHeight
       this.width = this.image.naturalWidth / this.numFrames
       this.loaded = true
-      onload()
     }
     this.image.src = this.src
   }
 
-  private frameIndex = 0
+  private frameIndices: { [id: number]: number } = {}
   private currentState: undefined | string
   render = (
     context: CanvasRenderingContext2D,
     x: number,
     y: number,
+    entityId: number,
     state = 'default'
   ) => {
     if (!this.loaded) return
     if (!this.currentState) this.currentState = state
-    if (state !== this.currentState) this.frameIndex = 0
+    if (state !== this.currentState) this.frameIndices[entityId] = 0
 
     const frames = this.states[state]
-    const spriteXOffset = frames[this.frameIndex] * this.width
+    const spriteXOffset = frames[this.frameIndices[entityId]] * this.width
 
-    if (frames.length > 1) {
-      if (this.frameIndex < frames.length - 1) {
-        this.frameIndex++
-      } else {
-        this.frameIndex = 0
-      }
+    if (this.frameIndices[entityId] < frames.length - 1) {
+      this.frameIndices[entityId]++
+    } else {
+      this.frameIndices[entityId] = 0
     }
 
     context.drawImage(

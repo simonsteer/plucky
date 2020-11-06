@@ -1,23 +1,27 @@
 import { Game } from '../Game'
-import { EntityConfig, EntityMetadata } from '../Scene/types'
+import { SpriteSheet } from '../SpriteSheet'
 
 export default class Terrain {
   game: Game
 
   fillStyle: string
   baseCost: number
-  sprite: EntityConfig<EntityMetadata>['sprite']
+  spriteState: string
+  spriteSheet: SpriteSheet
 
   readonly costOverride = Symbol()
 
   constructor({
     baseCost = 1,
-    sprite,
+    spriteState = 'default',
+    spriteSheet,
   }: {
     baseCost?: number
-    sprite: EntityConfig<EntityMetadata>['sprite']
+    spriteState?: string
+    spriteSheet: SpriteSheet
   }) {
     this.baseCost = baseCost
-    this.sprite = sprite
+    this.spriteState = spriteState
+    this.spriteSheet = spriteSheet
   }
 }

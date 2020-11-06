@@ -16,10 +16,23 @@ export default class Grid extends Scene<TileMetadata | DeploymentMetadata> {
   } = {}
 
   selectedDeployment?: { tiles: Tile[]; deployment: Deployment }
-  deselectDeployment() {
+
+  selectDeployment(deployment: Deployment) {
     this.selectedDeployment?.tiles.forEach(
-      t => (t.sprite!.highlight = undefined)
+      tile => (tile.spriteHighlight = undefined)
     )
+    this.selectedDeployment = {
+      deployment,
+      tiles: deployment.getReachableCoordinates().map(({ x, y }) => {
+        const tile = this.tiles[x][y]
+        tile.spriteHighlight = 'rgba(255,0,0,0.5)'
+        return tile
+      }),
+    }
+  }
+
+  deselectDeployment() {
+    this.selectedDeployment?.tiles.forEach(t => (t.spriteHighlight = undefined))
     this.selectedDeployment = undefined
   }
 

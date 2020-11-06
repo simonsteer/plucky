@@ -43,4 +43,6 @@ export default class Unit {
 
     return originWithinBounds && footprintWithinBounds
   }
+
+  clone = () => new Unit(this)
 }

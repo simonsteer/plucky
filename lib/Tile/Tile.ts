@@ -16,7 +16,8 @@ export default class Tile extends Entity<TileMetadata> {
       origin: coordinates,
       footprint: new DeltaConstraint([{ x: 0, y: 0 }]),
       metadata: { type: 'tile', terrain },
-      sprite: terrain.sprite,
+      spriteSheet: terrain.spriteSheet,
+      spriteState: terrain.spriteState,
     })
   }
 }

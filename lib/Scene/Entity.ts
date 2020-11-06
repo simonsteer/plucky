@@ -3,28 +3,40 @@ import { SpriteSheet } from '../SpriteSheet'
 import { XYCoords } from '../XYCoords'
 import { EntityConfig, EntityMetadata, EntitySprite } from './types'
 
+let id = 0
+
 export default class Entity<Metadata extends EntityMetadata = EntityMetadata> {
+  id: number
   footprint: DeltaConstraint
   origin: XYCoords
-  sprite?: EntitySprite
   metadata: Metadata
 
-  constructor({ footprint, origin, sprite, metadata }: EntityConfig<Metadata>) {
+  spriteSheet?: SpriteSheet
+  spriteState: string
+  spriteHighlight?: string
+  spriteXOffset: number
+  spriteYOffset: number
+
+  constructor({
+    footprint,
+    origin,
+    spriteSheet,
+    spriteHighlight,
+    spriteState = 'default',
+    spriteXOffset = 0,
+    spriteYOffset = 0,
+    metadata,
+  }: EntityConfig<Metadata>) {
+    id++
+    this.id = id
     this.metadata = metadata
     this.footprint = footprint
     this.origin = new XYCoords(origin)
-    if (sprite) this.sprite = { ...sprite, xOffset: 0, yOffset: 0 }
-  }
-
-  updateSprite(value: Partial<EntitySprite>) {
-    if (!this.sprite && !('sheet' in value)) return
-
-    this.sprite = {
-      ...(this.sprite || {}),
-      ...value,
-    } as EntitySprite
-
-    return this
+    this.spriteSheet = spriteSheet
+    this.spriteHighlight = spriteHighlight
+    this.spriteState = spriteState
+    this.spriteXOffset = spriteXOffset
+    this.spriteYOffset = spriteYOffset
   }
 
   area() {

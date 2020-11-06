@@ -2,7 +2,7 @@ import { Pathfinder, PathfinderObject } from '../Pathfinder'
 import { Unit } from '../Unit'
 import { Grid } from '../Grid'
 import { XYCoords, JSONCoords } from '../XYCoords'
-import { getAreaCostForUnit } from './utils'
+import { getAreaCostForUnit, animateDeploymentMovement } from './utils'
 import { Entity } from '../Scene'
 import { DeploymentMetadata } from './types'
 
@@ -14,7 +14,8 @@ export default class Deployment extends Entity<DeploymentMetadata> {
       origin: { x, y },
       footprint: unit.movement.footprint,
       metadata: { type: 'deployment', grid, unit },
-      sprite: { sheet: unit.sprite, state },
+      spriteSheet: unit.sprite,
+      spriteState: state,
     })
     this.pathfinder = new Pathfinder(this.createDijkstraGraph())
   }
@@ -35,41 +36,7 @@ export default class Deployment extends Entity<DeploymentMetadata> {
 
   move = (path: JSONCoords[]) => {
     if (!path.length) return this
-
-    const { cellSize } = this.grid.game.viewportDimensions
-    const targets = path.map(coordinates => {
-      let { x, y } = XYCoords.deltas(coordinates, this.origin)
-      x = x * cellSize
-      y = y * cellSize
-
-      return { x, y }
-    })
-
-    let i = 0
-    this.game.loop.do(() => {
-      // if there is no sprite to animate, exit the loop
-      if (!this.sprite) return false
-
-      const { xOffset, yOffset } = this.sprite
-      const target = targets[i]
-      const xMatches = xOffset === target.x
-      const yMatches = yOffset === target.y
-
-      if (!xMatches) this.sprite.xOffset += target.x > xOffset ? 1 : -1
-      if (!yMatches) this.sprite.yOffset += target.y > yOffset ? 1 : -1
-      if (xMatches && yMatches) i++
-
-      const continueLoop = i !== path.length
-      if (!continueLoop) {
-        this.origin.x = path[path.length - 1].x
-        this.origin.y = path[path.length - 1].y
-        this.sprite.xOffset = 0
-        this.sprite.yOffset = 0
-      }
-
-      return continueLoop
-    })
-
+    animateDeploymentMovement(this, path)
     return this
   }
 

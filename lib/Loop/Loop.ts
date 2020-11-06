@@ -47,22 +47,20 @@ export default class Loop {
 
       this.effects = this.effects.filter(effect => effect())
       layer.forEach((entity: GameEntity) => {
-        if (!entity.sprite) return
+        if (!entity.spriteSheet) return
 
         const x = entity.origin.x * cellSize
         const y = entity.origin.y * cellSize
 
-        const {
-          sheet,
-          state,
-          highlight,
-          xOffset = 0,
-          yOffset = 0,
-        } = entity.sprite
-
-        sheet.render(this.game.context, x + xOffset, y + yOffset, state)
-        if (highlight) {
-          this.game.context.fillStyle = highlight
+        entity.spriteSheet.render(
+          this.game.context,
+          x + entity.spriteXOffset,
+          y + entity.spriteYOffset,
+          entity.id,
+          entity.spriteState
+        )
+        if (entity.spriteHighlight) {
+          this.game.context.fillStyle = entity.spriteHighlight
           this.game.context.fillRect(x, y, cellSize, cellSize)
         }
       })
