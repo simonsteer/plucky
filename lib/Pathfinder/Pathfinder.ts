@@ -31,7 +31,8 @@ export default class Pathfinder {
 
   find(
     start: JSONCoords,
-    goal: JSONCoords
+    goal: JSONCoords,
+    avoid = [] as string[]
   ): { path: null | JSONCoords[]; cost: number } {
     // Don't run when we don't have nodes set
     if (!this.graph.size) {
@@ -81,7 +82,7 @@ export default class Pathfinder {
       >
       neighbors.forEach((cost, nNode) => {
         // If we already explored the node, or the node is to be avoided, skip it
-        if (explored.has(nNode)) return
+        if (explored.has(nNode) || avoid.includes(nNode)) return
 
         // If the neighboring node is not yet in the frontier, we add it with
         // the correct cost

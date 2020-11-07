@@ -1,15 +1,19 @@
 import { Deployment } from '.'
 import { Grid } from '../Grid'
-import { Unit } from '../Unit'
 import { JSONCoords, XYCoords } from '../../lib/XYCoords'
 
-export function getAreaCostForUnit(grid: Grid, area: JSONCoords[], unit: Unit) {
+export function getAreaCostForDeployment(
+  deployment: Deployment,
+  area: JSONCoords[]
+) {
   return area.reduce((sum, { x, y }) => {
-    const tile = grid.tiles[x]?.[y]
-    if (!tile) return Infinity
+    const tile = deployment.grid.tiles[x]?.[y]
+    if (!tile || ![undefined, deployment.id].includes(tile.deployment?.id))
+      return Infinity
 
     const terrain = tile.metadata.terrain
-    const terrainCost = unit[terrain.costOverride] || terrain.baseCost
+    const terrainCost =
+      deployment.unit[terrain.costOverride] || terrain.baseCost
     return sum + terrainCost
   }, 0)
 }
@@ -18,7 +22,6 @@ export const animateDeploymentMovement = (
   deployment: Deployment,
   path: JSONCoords[]
 ) => {
-  console.log(path)
   const { cellSize } = deployment.grid
   const targets = path.map(coordinates => {
     let { x, y } = XYCoords.deltas(coordinates, deployment.gridCoordinates)
@@ -26,6 +29,8 @@ export const animateDeploymentMovement = (
     y = y * cellSize
     return { x, y }
   })
+
+  deployment.evacuateTiles()
 
   let i = 0
   deployment.grid.game.loop.do(() => {
@@ -57,6 +62,7 @@ export const animateDeploymentMovement = (
       deployment.spriteState = 'default'
       deployment.origin.x = path[path.length - 1].x * cellSize
       deployment.origin.y = path[path.length - 1].y * cellSize
+      deployment.occupyTiles()
     }
 
     return continueLoop

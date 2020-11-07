@@ -7,7 +7,7 @@ import {
 import { Unit } from '../Unit'
 import { Grid } from '../Grid'
 import { XYCoords, JSONCoords } from '../../lib/XYCoords'
-import { getAreaCostForUnit, animateDeploymentMovement } from './utils'
+import { getAreaCostForDeployment, animateDeploymentMovement } from './utils'
 import GridEntity from '../GridEntity'
 import { getGridCoordinatesFromXY } from '../../lib/Game/utils'
 import { Tile } from '../Tile'
@@ -56,8 +56,23 @@ export default class Deployment extends GridEntity {
     return this
   }
 
-  getPath = (to: JSONCoords, from = this.gridCoordinates) =>
-    this.pathfinder.find(from, to)
+  getPath = (to: JSONCoords, from = this.gridCoordinates) => {
+    const avoid = this.grid
+      .filterTiles(tile => {
+        const footprint = this.footprint.adjacent(tile.gridCoordinates)
+
+        return (
+          footprint.every(this.grid.withinBounds) &&
+          footprint.some(({ x, y }) => {
+            const { deployment } = this.grid.tiles[x][y]
+            return !!deployment && deployment.id !== this.id
+          })
+        )
+      })
+      .map(tile => tile.gridCoordinates.hash)
+
+    return this.pathfinder.find(from, to, avoid)
+  }
 
   getReachableCoordinates = (
     from = this.gridCoordinates.raw,
@@ -65,7 +80,7 @@ export default class Deployment extends GridEntity {
   ) =>
     this.unit.movement.pattern.adjacent(from).reduce((acc, target) => {
       const area = this.unit.movement.footprint.adjacent(target)
-      const areaCost = getAreaCostForUnit(this.grid, area, this.unit)
+      const areaCost = getAreaCostForDeployment(this, area)
       if (areaCost > stepsLeft) {
         return acc
       }
@@ -100,11 +115,7 @@ export default class Deployment extends GridEntity {
           return acc
         }
 
-        const destinationCost = getAreaCostForUnit(
-          this.grid,
-          destinationArea,
-          this.unit
-        )
+        const destinationCost = getAreaCostForDeployment(this, destinationArea)
         if (destinationCost <= this.movementPool) {
           acc.push(destination)
         }
@@ -120,7 +131,22 @@ export default class Deployment extends GridEntity {
       })
     })
 
-    console.log(graph)
     return graph
+  }
+
+  evacuateTiles = () => {
+    const area = this.area()
+    this.grid
+      .filterTiles(tile => area.some(tile.gridCoordinates.match))
+      .forEach(tile => (tile.deployment = undefined))
+    return this
+  }
+
+  occupyTiles = () => {
+    const area = this.area()
+    this.grid
+      .filterTiles(tile => area.some(tile.gridCoordinates.match))
+      .forEach(tile => (tile.deployment = this))
+    return this
   }
 }

@@ -65,6 +65,7 @@ export default class Grid extends Scene {
         state,
         footprint: unit.movement.footprint,
       })
+      deployment.occupyTiles()
       this.add(deployment)
       return deployment
     }
@@ -75,6 +76,7 @@ export default class Grid extends Scene {
     const deployment = this.deployments().find(d => d.unit === unit)
     if (!deployment) return this
 
+    deployment.evacuateTiles()
     this.remove(deployment)
 
     return this
@@ -83,6 +85,7 @@ export default class Grid extends Scene {
   deployments() {
     return this.filter(e => e.metadata.type === 'deployment') as Deployment[]
   }
+
   teams() {
     return [...new Set(this.deployments().map(d => d.unit.team))]
   }
@@ -102,4 +105,9 @@ export default class Grid extends Scene {
       entity => entity instanceof Tile && callback(entity)
     ) as Tile[]
   }
+
+  findDeployment = (query: (deployment: Deployment) => boolean) =>
+    this.find(entity => entity instanceof Deployment && query(entity)) as
+      | Deployment
+      | undefined
 }

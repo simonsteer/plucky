@@ -1,9 +1,12 @@
 import { Entity, JSONCoords, DeltaConstraint } from '../../lib'
+import { Deployment } from '../Deployment'
 import { Grid } from '../Grid'
 import GridEntity from '../GridEntity'
 import { Terrain } from '../Terrain'
 
 export default class Tile extends GridEntity {
+  deployment?: Deployment
+
   constructor({
     grid,
     coordinates: { x, y },
