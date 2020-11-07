@@ -3,8 +3,8 @@ import { SpriteSheetConfig } from './types'
 export default class SpriteSheet {
   image: HTMLImageElement
   numFrames: number
-  width: number
-  height: number
+  frameWidth: number
+  frameHeight: number
   loaded: boolean
   src: string
   states: SpriteSheetConfig['states']
@@ -22,8 +22,8 @@ export default class SpriteSheet {
     this.src = src
     this.onload = onload
     this.image.onload = () => {
-      this.height = this.image.naturalHeight
-      this.width = this.image.naturalWidth / this.numFrames
+      this.frameHeight = this.image.naturalHeight
+      this.frameWidth = this.image.naturalWidth / this.numFrames
       this.loaded = true
     }
     this.image.src = this.src
@@ -43,7 +43,7 @@ export default class SpriteSheet {
     if (state !== this.currentState) this.frameIndices[entityId] = 0
 
     const frames = this.states[state]
-    const spriteXOffset = frames[this.frameIndices[entityId]] * this.width
+    const spriteXOffset = frames[this.frameIndices[entityId]] * this.frameWidth
 
     if (this.frameIndices[entityId] < frames.length - 1) {
       this.frameIndices[entityId]++
@@ -55,12 +55,12 @@ export default class SpriteSheet {
       this.image,
       spriteXOffset,
       0,
-      this.width,
-      this.height,
+      this.frameWidth,
+      this.frameHeight,
       x,
       y,
-      this.width,
-      this.height
+      this.frameWidth,
+      this.frameHeight
     )
   }
 }

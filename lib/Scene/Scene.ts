@@ -1,9 +1,8 @@
 import { JSONCoords } from '../XYCoords'
-import Entity from './Entity'
-import { EntityMetadata } from './types'
+import { Entity } from '../Entity'
 
-export default class Scene<Metadata extends EntityMetadata = EntityMetadata> {
-  entities = new Set<Entity<Metadata>>()
+export default class Scene {
+  entities: Entity[] = []
 
   width: number
   height: number
@@ -12,17 +11,23 @@ export default class Scene<Metadata extends EntityMetadata = EntityMetadata> {
     this.height = height
   }
 
-  map = <R extends any = Entity<EntityMetadata>>(
-    callback = (entity: Entity<EntityMetadata>) => entity as R
-  ) => [...this.entities].map(callback)
+  add(entity: Entity) {
+    this.entities.push(entity)
+    this.entities.sort((a, b) => a.renderLayer - b.renderLayer)
+    return this
+  }
 
-  filter = <R extends boolean>(
-    callback = (entity: Entity<EntityMetadata>) => true as R
-  ) => [...this.entities].filter(callback)
+  remove(entity: Entity) {
+    this.entities = this.entities.filter(e => e !== entity)
+    return this
+  }
 
-  find = <R extends boolean>(callback: (entity: Entity<EntityMetadata>) => R) =>
+  map = <R extends any = Entity>(callback = (entity: Entity) => entity as R) =>
+    this.entities.map(callback)
+
+  filter = (callback: (entity: Entity) => boolean) =>
+    this.entities.filter(callback)
+
+  find = <R extends boolean>(callback: (entity: Entity) => R) =>
     this.find(callback)
-
-  entitiesOccupying = (coordinate: JSONCoords) =>
-    this.filter(e => e.footprint.applies(e.origin, coordinate))
 }

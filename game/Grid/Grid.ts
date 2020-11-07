@@ -1,21 +1,37 @@
-import { Deployment, DeploymentMetadata } from '../Deployment'
-import { Game } from '../Game'
-import { Entity, Scene } from '../Scene'
-import { Tile, TileMetadata } from '../Tile'
+import { Deployment } from '../Deployment'
+import { Scene, Entity, JSONCoords, Game } from '../../lib'
+import { Tile } from '../Tile'
 import { Unit } from '../Unit'
-import { JSONCoords } from '../XYCoords'
 import { GridConfig } from './types'
 import { getGridDimensions } from './utils'
 
-export default class Grid extends Scene<TileMetadata | DeploymentMetadata> {
-  game: Game
+export default class Grid extends Scene {
   tiles: {
     [x: number]: {
       [y: number]: Tile
     }
   } = {}
-
+  cellSize: number
+  game: Game
   selectedDeployment?: { tiles: Tile[]; deployment: Deployment }
+
+  constructor({ game, tiles, cellSize }: GridConfig) {
+    super(getGridDimensions(tiles))
+    this.game = game
+    this.cellSize = cellSize
+    tiles.forEach((row, y) =>
+      row.forEach((terrain, x) => {
+        const tile = new Tile({
+          grid: this,
+          terrain,
+          coordinates: { x, y },
+        })
+        if (!this.tiles[x]) this.tiles[x] = {}
+        this.tiles[x][y] = tile
+        this.add(tile)
+      })
+    )
+  }
 
   selectDeployment(deployment: Deployment) {
     this.selectedDeployment?.tiles.forEach(
@@ -36,29 +52,20 @@ export default class Grid extends Scene<TileMetadata | DeploymentMetadata> {
     this.selectedDeployment = undefined
   }
 
-  constructor({ tiles }: GridConfig) {
-    super(getGridDimensions(tiles))
-    tiles.forEach((row, y) =>
-      row.forEach((terrain, x) => {
-        const tile = new Tile({
-          terrain,
-          coordinates: { x, y },
-        })
-        if (!this.tiles[x]) this.tiles[x] = {}
-        this.tiles[x][y] = tile
-        this.entities.add(tile)
-      })
-    )
-  }
-
   deploy = (unit: Unit, x: number, y: number, state = 'default') => {
     if (
       unit.canDeploy(this, x, y) &&
       !this.deployments().some(d => d.unit === unit)
     ) {
-      const deployment = new Deployment(this, unit, x, y, state)
-      this.entities.add(deployment)
-      this.game.emit(Game.Events.UnitDeployed, deployment)
+      const deployment = new Deployment({
+        grid: this,
+        unit,
+        x,
+        y,
+        state,
+        footprint: unit.movement.footprint,
+      })
+      this.add(deployment)
       return deployment
     }
     return null
@@ -68,8 +75,7 @@ export default class Grid extends Scene<TileMetadata | DeploymentMetadata> {
     const deployment = this.deployments().find(d => d.unit === unit)
     if (!deployment) return this
 
-    this.entities.delete(deployment)
-    this.game.emit(Game.Events.DeploymentWithdrawn, deployment)
+    this.remove(deployment)
 
     return this
   }
@@ -88,10 +94,10 @@ export default class Grid extends Scene<TileMetadata | DeploymentMetadata> {
   withinBounds = ({ x, y }: JSONCoords) =>
     x >= 0 && x < this.width && y >= 0 && y < this.height
 
-  mapTiles<R extends any>(callback: (tile: Entity<TileMetadata>) => R): R[] {
+  mapTiles<R extends any>(callback: (tile: Tile) => R): R[] {
     return this.filter(entity => entity instanceof Tile).map(callback)
   }
-  filterTiles<R extends boolean>(callback: (tile: Entity<TileMetadata>) => R) {
+  filterTiles<R extends boolean>(callback: (tile: Tile) => R) {
     return this.filter(
       entity => entity instanceof Tile && callback(entity)
     ) as Tile[]

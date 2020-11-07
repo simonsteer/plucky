@@ -1,5 +1,4 @@
 import { Game } from '../Game'
-import { GameEntity } from '../Game/types'
 
 export default class Loop {
   start: number | undefined
@@ -30,40 +29,29 @@ export default class Loop {
       this.start = timestamp
     }
 
-    const { tile, deployment, zone } = scene.map().reduce(
-      (acc, entity: GameEntity) => {
-        acc[entity.metadata.type].push(entity)
-        return acc
-      },
-      {
-        tile: [] as GameEntity[],
-        deployment: [] as GameEntity[],
-        zone: [] as GameEntity[],
-      }
-    )
+    this.effects = this.effects.filter(effect => effect())
+    scene.map(entity => {
+      if (!entity.spriteSheet) return
 
-    ;[tile, deployment, zone].forEach(layer => {
-      const { cellSize } = this.game.viewportDimensions
+      const x = entity.origin.x
+      const y = entity.origin.y
 
-      this.effects = this.effects.filter(effect => effect())
-      layer.forEach((entity: GameEntity) => {
-        if (!entity.spriteSheet) return
-
-        const x = entity.origin.x * cellSize
-        const y = entity.origin.y * cellSize
-
-        entity.spriteSheet.render(
-          this.game.context,
-          x + entity.spriteXOffset,
-          y + entity.spriteYOffset,
-          entity.id,
-          entity.spriteState
+      entity.spriteSheet.render(
+        this.game.context,
+        x + entity.spriteXOffset,
+        y + entity.spriteYOffset,
+        entity.id,
+        entity.spriteState
+      )
+      if (entity.spriteHighlight) {
+        this.game.context.fillStyle = entity.spriteHighlight
+        this.game.context.fillRect(
+          x,
+          y,
+          entity.spriteSheet.frameWidth,
+          entity.spriteSheet.frameHeight
         )
-        if (entity.spriteHighlight) {
-          this.game.context.fillStyle = entity.spriteHighlight
-          this.game.context.fillRect(x, y, cellSize, cellSize)
-        }
-      })
+      }
     })
 
     window.requestAnimationFrame(this.run)

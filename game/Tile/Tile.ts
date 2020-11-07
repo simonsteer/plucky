@@ -1,23 +1,26 @@
-import { TileMetadata } from './types'
-import { Entity } from '../Scene'
-import { JSONCoords } from '../XYCoords'
-import { DeltaConstraint } from '../DeltaConstraint'
+import { Entity, JSONCoords, DeltaConstraint } from '../../lib'
+import { Grid } from '../Grid'
+import GridEntity from '../GridEntity'
 import { Terrain } from '../Terrain'
 
-export default class Tile extends Entity<TileMetadata> {
+export default class Tile extends GridEntity {
   constructor({
-    coordinates,
+    grid,
+    coordinates: { x, y },
     terrain,
   }: {
+    grid: Grid
     coordinates: JSONCoords
     terrain: Terrain
   }) {
     super({
-      origin: coordinates,
+      grid,
+      origin: { x, y },
       footprint: new DeltaConstraint([{ x: 0, y: 0 }]),
       metadata: { type: 'tile', terrain },
       spriteSheet: terrain.spriteSheet,
       spriteState: terrain.spriteState,
+      renderLayer: 0,
     })
   }
 }

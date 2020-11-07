@@ -4,8 +4,6 @@ import { Unit } from '../Unit'
 import { TeamRelationshipType, TeamConfig } from './types'
 
 export default class Team {
-  game: Game
-
   parent?: Team
   hostile = new Set<Team>()
   friendly = new Set<Team>()

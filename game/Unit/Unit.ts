@@ -1,13 +1,9 @@
-import { DeltaConstraint } from '../DeltaConstraint'
-import { Game } from '../Game'
+import { DeltaConstraint, SpriteSheet } from '../../lib'
 import { Grid } from '../Grid'
 import { Team } from '../Team'
 import { UnitConfig } from './types'
-import { SpriteSheet } from '../SpriteSheet'
 
 export default class Unit {
-  game: Game
-
   movement: {
     footprint: DeltaConstraint
     pattern: DeltaConstraint

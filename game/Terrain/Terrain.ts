@@ -1,9 +1,6 @@
-import { Game } from '../Game'
-import { SpriteSheet } from '../SpriteSheet'
+import { SpriteSheet } from '../../lib'
 
 export default class Terrain {
-  game: Game
-
   fillStyle: string
   baseCost: number
   spriteState: string

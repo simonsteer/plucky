@@ -1,20 +1,9 @@
 import { EventEmitter } from 'events'
-import { getCoordinatesFromClick, link } from './utils'
-import { Grid } from '../Grid'
-import { Team } from '../Team'
-import { Zone } from '../Zone'
-import { Terrain } from '../Terrain'
-import { Unit } from '../Unit'
-import { EntityMetadata, Scene } from '../Scene'
+import { getGridCoordinatesFromXY } from './utils'
+import { Scene } from '../Scene'
 import { Loop } from '../Loop'
 
 export default class Game extends EventEmitter {
-  Grid: typeof Grid
-  Team: typeof Team
-  Terrain: typeof Terrain
-  Unit: typeof Unit
-  Zone: typeof Zone
-
   static Events = {
     UnitDeployed: Symbol(),
     DeploymentWithdrawn: Symbol(),
@@ -54,19 +43,14 @@ export default class Game extends EventEmitter {
       cellSize,
     }
     this.init(canvas)
-    this.Grid = link(this, Grid)
-    this.Team = link(this, Team)
-    this.Terrain = link(this, Terrain)
-    this.Unit = link(this, Unit)
-    this.Zone = link(this, Zone)
     this.loop = new Loop(this)
   }
 
   loop: Loop
 
-  currentScene?: Scene<EntityMetadata>
+  currentScene?: Scene
 
-  loadScene = (scene: Scene<EntityMetadata>) => {
+  loadScene = (scene: Scene) => {
     this.currentScene = scene
     if (!this.loop.didStart) {
       this.loop.run()
@@ -74,30 +58,16 @@ export default class Game extends EventEmitter {
   }
 
   private handleClick = (e: MouseEvent) => {
-    if (!this.currentScene) return
-    const coordinates = getCoordinatesFromClick(
-      e.offsetX,
-      e.offsetY,
-      this.viewportDimensions.cellSize
-    )
-
-    const entities = this.currentScene.filter(e => e.origin.match(coordinates))
-    if (entities.length) {
-      this.emit(Game.Events.SceneClicked, this.currentScene, { entities })
+    if (this.currentScene) {
+      const coordinates = { x: e.offsetX, y: e.offsetY }
+      this.emit(Game.Events.SceneClicked, this.currentScene, coordinates)
     }
   }
 
   private handleMouseMove = (e: MouseEvent) => {
-    if (!this.currentScene) return
-    const coordinates = getCoordinatesFromClick(
-      e.offsetX,
-      e.offsetY,
-      this.viewportDimensions.cellSize
-    )
-
-    const entities = this.currentScene.filter(e => e.origin.match(coordinates))
-    if (entities.length) {
-      this.emit(Game.Events.SceneMouseMove, this.currentScene, { entities })
+    if (this.currentScene) {
+      const coordinates = { x: e.offsetX, y: e.offsetY }
+      this.emit(Game.Events.SceneMouseMove, this.currentScene, coordinates)
     }
   }
 

@@ -1,10 +1,5 @@
-import { DeltaConstraint } from '../DeltaConstraint'
 import { SpriteSheet } from '../SpriteSheet'
 import { JSONCoords } from '../XYCoords'
-
-export interface EntityMetadata {
-  type: string
-}
 
 export type EntitySprite = {
   sheet: SpriteSheet
@@ -14,13 +9,13 @@ export type EntitySprite = {
   yOffset: number
 }
 
-export type EntityConfig<Metadata extends EntityMetadata> = {
-  footprint: DeltaConstraint
+export type EntityConfig = {
   origin: JSONCoords
   spriteSheet?: SpriteSheet
   spriteState?: string
   spriteHighlight?: string
   spriteXOffset?: number
   spriteYOffset?: number
-  metadata: Metadata
+  metadata: any
+  renderLayer?: number
 }

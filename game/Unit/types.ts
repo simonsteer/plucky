@@ -1,5 +1,4 @@
-import { DeltaConstraint } from '../DeltaConstraint'
-import { SpriteSheet } from '../SpriteSheet'
+import { DeltaConstraint, SpriteSheet } from '../../lib'
 import { Team } from '../Team'
 
 export type UnitMovement = {

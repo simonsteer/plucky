@@ -2,7 +2,7 @@ import { memoize } from '../utils'
 import { XYCoords, JSONCoords } from '../XYCoords'
 
 export default class DeltaConstraint {
-  private timestamp = 0
+  timestamp = 0
 
   private lookupMap: {
     [key: string]: {

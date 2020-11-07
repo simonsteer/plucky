@@ -1,33 +1,49 @@
-import { Pathfinder, PathfinderObject } from '../Pathfinder'
+import {
+  DeltaConstraint,
+  memoize,
+  Pathfinder,
+  PathfinderObject,
+} from '../../lib'
 import { Unit } from '../Unit'
 import { Grid } from '../Grid'
-import { XYCoords, JSONCoords } from '../XYCoords'
+import { XYCoords, JSONCoords } from '../../lib/XYCoords'
 import { getAreaCostForUnit, animateDeploymentMovement } from './utils'
-import { Entity } from '../Scene'
-import { DeploymentMetadata } from './types'
+import GridEntity from '../GridEntity'
+import { getGridCoordinatesFromXY } from '../../lib/Game/utils'
+import { Tile } from '../Tile'
 
-export default class Deployment extends Entity<DeploymentMetadata> {
+export default class Deployment extends GridEntity {
   private pathfinder: Pathfinder
 
-  constructor(grid: Grid, unit: Unit, x: number, y: number, state = 'default') {
+  constructor({
+    grid,
+    unit,
+    x,
+    y,
+    state = 'default',
+    footprint,
+  }: {
+    grid: Grid
+    unit: Unit
+    x: number
+    y: number
+    state?: string
+    footprint: DeltaConstraint
+  }) {
     super({
+      grid,
+      footprint,
       origin: { x, y },
-      footprint: unit.movement.footprint,
       metadata: { type: 'deployment', grid, unit },
       spriteSheet: unit.sprite,
       spriteState: state,
+      renderLayer: 1,
     })
     this.pathfinder = new Pathfinder(this.createDijkstraGraph())
   }
 
   get unit() {
-    return this.metadata.unit
-  }
-  get grid() {
-    return this.metadata.grid
-  }
-  get game() {
-    return this.grid.game
+    return this.metadata.unit as Unit
   }
 
   private get movementPool() {
@@ -40,11 +56,11 @@ export default class Deployment extends Entity<DeploymentMetadata> {
     return this
   }
 
-  getPath = (to: JSONCoords, from = this.origin) =>
+  getPath = (to: JSONCoords, from = this.gridCoordinates) =>
     this.pathfinder.find(from, to)
 
   getReachableCoordinates = (
-    from = this.origin.raw,
+    from = this.gridCoordinates.raw,
     stepsLeft = this.movementPool
   ) =>
     this.unit.movement.pattern.adjacent(from).reduce((acc, target) => {
@@ -69,15 +85,15 @@ export default class Deployment extends Entity<DeploymentMetadata> {
 
     const graph: PathfinderObject = {}
 
-    this.grid.mapTiles(({ metadata: { terrain }, origin }) => {
-      const fromArea = footprint.adjacent(origin)
+    this.grid.mapTiles(({ metadata: { terrain }, gridCoordinates }) => {
+      const fromArea = footprint.adjacent(gridCoordinates)
       if (fromArea.some(this.grid.outOfBounds)) {
         return
       }
 
-      const fromHash = XYCoords.hash(origin)
+      const fromHash = XYCoords.hash(gridCoordinates)
 
-      let reachable = pattern.adjacent(origin)
+      let reachable = pattern.adjacent(gridCoordinates)
       reachable = reachable.reduce((acc, destination) => {
         const destinationArea = footprint.adjacent(destination)
         if (destinationArea.some(this.grid.outOfBounds)) {
@@ -104,6 +120,7 @@ export default class Deployment extends Entity<DeploymentMetadata> {
       })
     })
 
+    console.log(graph)
     return graph
   }
 }

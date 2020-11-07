@@ -35,7 +35,6 @@ export default class Pathfinder {
   ): { path: null | JSONCoords[]; cost: number } {
     // Don't run when we don't have nodes set
     if (!this.graph.size) {
-      console.log('nograph')
       return { path: null, cost: 0 }
     }
 
