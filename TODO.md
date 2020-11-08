@@ -1,0 +1,1 @@
+- make `Game` available on `Entity` and `Scene`

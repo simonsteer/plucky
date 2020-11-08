@@ -42,6 +42,8 @@ export default class Game extends EventEmitter {
       width: viewportWidth * cellSize,
       cellSize,
     }
+    canvas.height = this.viewportDimensions.height
+    canvas.width = this.viewportDimensions.width
     this.init(canvas)
     this.loop = new Loop(this)
   }

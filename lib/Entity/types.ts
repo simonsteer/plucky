@@ -16,6 +16,7 @@ export type EntityConfig = {
   spriteHighlight?: string
   spriteXOffset?: number
   spriteYOffset?: number
+  spriteOpacity?: number
   metadata: any
   renderLayer?: number
 }

@@ -1,7 +1,9 @@
-import { JSONCoords } from '../XYCoords'
 import { Entity } from '../Entity'
 
+let id = 0
+
 export default class Scene {
+  id: number
   entities: Entity[] = []
 
   width: number
@@ -9,6 +11,8 @@ export default class Scene {
   constructor({ width, height }: { width: number; height: number }) {
     this.width = width
     this.height = height
+    id++
+    this.id = id
   }
 
   add(entity: Entity) {
@@ -29,5 +33,5 @@ export default class Scene {
     this.entities.filter(callback)
 
   find = <R extends boolean>(callback: (entity: Entity) => R) =>
-    this.find(callback)
+    this.entities.find(callback)
 }

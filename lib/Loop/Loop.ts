@@ -15,6 +15,8 @@ export default class Loop {
     this.effects.push(callback)
   }
 
+  rotateTranslations = { x: 0, y: 0 }
+
   run = (timestamp = Date.now()) => {
     if (!this.didStart) this.didStart = true
     const scene = this.game.currentScene
@@ -36,6 +38,7 @@ export default class Loop {
       const x = entity.origin.x
       const y = entity.origin.y
 
+      this.game.context.globalAlpha = entity.spriteOpacity
       entity.spriteSheet.render(
         this.game.context,
         x + entity.spriteXOffset,
@@ -43,6 +46,8 @@ export default class Loop {
         entity.id,
         entity.spriteState
       )
+      this.game.context.globalAlpha = 1
+
       if (entity.spriteHighlight) {
         this.game.context.fillStyle = entity.spriteHighlight
         this.game.context.fillRect(
