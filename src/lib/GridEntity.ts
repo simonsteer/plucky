@@ -2,6 +2,7 @@ import {
   DeltaConstraint,
   Entity,
   EntityConfig,
+  Game,
   JSONCoords,
   memoize,
   XYCoords,
@@ -13,13 +14,16 @@ export default class GridEntity extends Entity {
   grid: Grid
   footprint: DeltaConstraint
 
-  constructor({
-    grid,
-    footprint,
-    origin: { x, y },
-    ...params
-  }: EntityConfig & { grid: Grid; footprint: DeltaConstraint }) {
-    super({
+  constructor(
+    game: Game,
+    {
+      grid,
+      footprint,
+      origin: { x, y },
+      ...params
+    }: EntityConfig & { grid: Grid; footprint: DeltaConstraint }
+  ) {
+    super(game, {
       origin: { x: x * grid.cellSize, y: y * grid.cellSize },
       ...params,
     })

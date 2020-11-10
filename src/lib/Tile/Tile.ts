@@ -1,4 +1,5 @@
-import { Entity, JSONCoords, DeltaConstraint } from '../../../lib'
+import { game } from '../..'
+import { JSONCoords, DeltaConstraint } from '../../../lib'
 import { Deployment } from '../Deployment'
 import { Grid } from '../Grid'
 import GridEntity from '../GridEntity'
@@ -16,7 +17,7 @@ export default class Tile extends GridEntity {
     coordinates: JSONCoords
     terrain: Terrain
   }) {
-    super({
+    super(game, {
       grid,
       origin: { x, y },
       footprint: new DeltaConstraint([{ x: 0, y: 0 }]),

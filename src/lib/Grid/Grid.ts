@@ -13,14 +13,12 @@ export default class Grid extends Scene {
     }
   } = {}
   cellSize: number
-  game: Game
   selectedDeployment?: { tiles: Tile[]; deployment: Deployment }
   timestamp: number
   cursor: Cursor
 
   constructor({ game, tiles, cellSize }: GridConfig) {
-    super(getGridDimensions(tiles))
-    this.game = game
+    super(game, getGridDimensions(tiles))
     this.cursor = new Cursor(this)
     this.cellSize = cellSize
     tiles.forEach((row, y) =>
@@ -35,7 +33,21 @@ export default class Grid extends Scene {
         this.add(tile)
       })
     )
-    this.cursor.show()
+    this.initCursor()
+  }
+
+  private initCursor = () => {
+    const tile = this.tiles[0][0]
+    const selectFirstTile = async () => {
+      await this.cursor.select(tile)
+      this.cursor.show()
+    }
+    if (tile.spriteSheet && !tile.spriteSheet.loaded) {
+      tile.spriteSheet.onload(selectFirstTile)
+      return
+    }
+
+    selectFirstTile()
   }
 
   selectDeployment(deployment: Deployment) {
@@ -62,7 +74,7 @@ export default class Grid extends Scene {
       unit.canDeploy(this, x, y) &&
       !this.deployments().some(d => d.unit === unit)
     ) {
-      const deployment = new Deployment({
+      const deployment = new Deployment(this.game, {
         grid: this,
         unit,
         x,

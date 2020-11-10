@@ -1,3 +1,4 @@
+import { Game } from '../Game'
 import { SpriteSheet } from '../SpriteSheet'
 import { XYCoords } from '../XYCoords'
 import { EntityConfig } from './types'
@@ -15,6 +16,7 @@ export default class Entity {
   id: number
   origin: XYCoords
   metadata: any
+  game: Game
 
   renderLayer: number
   spriteSheet?: SpriteSheet
@@ -24,19 +26,23 @@ export default class Entity {
   spriteYOffset: number
   spriteOpacity: number
 
-  constructor({
-    origin,
-    spriteSheet,
-    spriteHighlight,
-    spriteState = 'default',
-    spriteXOffset = 0,
-    spriteYOffset = 0,
-    spriteOpacity = 1,
-    metadata,
-    renderLayer = 0,
-  }: EntityConfig) {
+  constructor(
+    game: Game,
+    {
+      origin,
+      spriteSheet,
+      spriteHighlight,
+      spriteState = 'default',
+      spriteXOffset = 0,
+      spriteYOffset = 0,
+      spriteOpacity = 1,
+      metadata,
+      renderLayer = 0,
+    }: EntityConfig
+  ) {
     id++
     this.id = id
+    this.game = game
     this.metadata = metadata
     this.origin = new XYCoords(origin)
     this.spriteSheet = spriteSheet

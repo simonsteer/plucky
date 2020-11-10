@@ -8,7 +8,7 @@ export default class SpriteSheet {
   loaded: boolean
   src: string
   states: SpriteSheetConfig['states']
-  onload?: () => void
+  onloadHandlers: (() => void)[] = []
 
   constructor({
     src,
@@ -20,14 +20,17 @@ export default class SpriteSheet {
     this.image = new Image()
     this.numFrames = numFrames
     this.src = src
-    this.onload = onload
+    this.onload(onload)
     this.image.onload = () => {
       this.frameHeight = this.image.naturalHeight
       this.frameWidth = this.image.naturalWidth / this.numFrames
       this.loaded = true
+      this.onloadHandlers.forEach(handler => handler())
     }
     this.image.src = this.src
   }
+
+  onload = (callback: () => void) => this.onloadHandlers.push(callback)
 
   private frameIndices: { [id: number]: number } = {}
   private currentState: undefined | string

@@ -1,4 +1,9 @@
-import { DeltaConstraint, Pathfinder, PathfinderObject } from '../../../lib'
+import {
+  DeltaConstraint,
+  Game,
+  Pathfinder,
+  PathfinderObject,
+} from '../../../lib'
 import { Unit } from '../Unit'
 import { Grid } from '../Grid'
 import { XYCoords, JSONCoords } from '../../../lib/XYCoords'
@@ -9,22 +14,25 @@ import { animateEntityMovement } from '../../game/utils'
 export default class Deployment extends GridEntity {
   private pathfinder: Pathfinder
 
-  constructor({
-    grid,
-    unit,
-    x,
-    y,
-    state = 'default',
-    footprint,
-  }: {
-    grid: Grid
-    unit: Unit
-    x: number
-    y: number
-    state?: string
-    footprint: DeltaConstraint
-  }) {
-    super({
+  constructor(
+    game: Game,
+    {
+      grid,
+      unit,
+      x,
+      y,
+      state = 'default',
+      footprint,
+    }: {
+      grid: Grid
+      unit: Unit
+      x: number
+      y: number
+      state?: string
+      footprint: DeltaConstraint
+    }
+  ) {
+    super(game, {
       grid,
       footprint,
       origin: { x, y },
@@ -54,7 +62,8 @@ export default class Deployment extends GridEntity {
       path.map(c => ({
         x: c.x * this.grid.cellSize,
         y: c.y * this.grid.cellSize,
-      }))
+      })),
+      2
     )
     this.occupyTiles()
 

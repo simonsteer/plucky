@@ -1,8 +1,9 @@
-import { Entity, Game, SpriteSheet } from '../../lib'
+import { Entity, SpriteSheet } from '../../lib'
 import cursorSprite from '../assets/cursor.png'
 import { Grid } from '../lib/Grid'
 import { animateEntityMovement } from './utils'
 import { getEntityFromCoords } from '../utils/events'
+import { game } from '..'
 
 const cursorSpriteSheet = new SpriteSheet({
   src: cursorSprite,
@@ -25,7 +26,7 @@ export default class Cursor {
     ['upper', 'upper'],
   ] as const).map(
     (subtype, i) =>
-      new Entity({
+      new Entity(game, {
         origin: { x: 0, y: 0 },
         spriteSheet: cursorSpriteSheet,
         spriteState: subtype.join(''),
@@ -57,33 +58,49 @@ export default class Cursor {
   }
 
   selectedEntity?: Entity
-  select(selectedEntity: Entity) {
-    if (!selectedEntity.spriteSheet) {
-      return
-    }
+  async select(selectedEntity: Entity) {
+    return new Promise(resolve => {
+      if (!selectedEntity.spriteSheet) {
+        resolve()
+        return
+      }
 
-    const bounds = {
-      x: {
-        lower: selectedEntity.origin.x,
-        upper:
-          selectedEntity.origin.x +
-          selectedEntity.spriteSheet!.frameWidth -
-          cursorSpriteSheet.frameWidth,
-      },
-      y: {
-        lower: selectedEntity.origin.y,
-        upper:
-          selectedEntity.origin.y +
-          selectedEntity.spriteSheet!.frameHeight -
-          cursorSpriteSheet.frameHeight,
-      },
-    }
+      const bounds = {
+        x: {
+          lower: selectedEntity.origin.x,
+          upper:
+            selectedEntity.origin.x +
+            selectedEntity.spriteSheet!.frameWidth -
+            cursorSpriteSheet.frameWidth,
+        },
+        y: {
+          lower: selectedEntity.origin.y,
+          upper:
+            selectedEntity.origin.y +
+            selectedEntity.spriteSheet!.frameHeight -
+            cursorSpriteSheet.frameHeight,
+        },
+      }
 
-    this.selectedEntity = selectedEntity
-    this.entities.forEach(cursorEntity => {
-      const [xBound, yBound] = cursorEntity.metadata.subtype as [string, string]
-      const destination = { x: bounds.x[xBound], y: bounds.y[yBound] }
-      animateEntityMovement(this.grid.game, cursorEntity, [destination], 5)
+      this.selectedEntity = selectedEntity
+
+      let cursorCount = 0
+      this.entities.forEach(cursorEntity => {
+        const [xBound, yBound] = cursorEntity.metadata.subtype as [
+          string,
+          string
+        ]
+        const destination = { x: bounds.x[xBound], y: bounds.y[yBound] }
+        animateEntityMovement(
+          this.grid.game,
+          cursorEntity,
+          [destination],
+          5
+        ).then(() => {
+          cursorCount++
+          if (cursorCount === 4) resolve()
+        })
+      })
     })
   }
 

@@ -1,18 +1,28 @@
 import { Entity } from '../Entity'
+import { Game } from '../Game'
 
 let id = 0
 
 export default class Scene {
   id: number
   entities: Entity[] = []
+  game: Game
 
   width: number
   height: number
-  constructor({ width, height }: { width: number; height: number }) {
+  constructor(
+    game: Game,
+    { width, height }: { width: number; height: number }
+  ) {
+    this.game = game
     this.width = width
     this.height = height
     id++
     this.id = id
+  }
+
+  load() {
+    this.game.loadScene(this)
   }
 
   add(entity: Entity) {

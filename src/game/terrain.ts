@@ -1,12 +1,12 @@
 import { SpriteSheet } from '../../lib'
 import { Terrain } from '../lib/Terrain'
-import terrainSprite from '../assets/test_sprite.png'
+import terrainSprite from '../assets/terrain.png'
 
 const terrainSpriteSheet = new SpriteSheet({
   src: terrainSprite,
-  numFrames: 8,
+  numFrames: 3,
   states: {
-    default: [2],
+    default: [0],
     forest: [1],
   },
 })

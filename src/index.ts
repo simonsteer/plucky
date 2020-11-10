@@ -6,7 +6,7 @@ import { createFairy, createOgre } from './game/units'
 
 const CELL_SIZE = 20
 
-const game = new Game({ canvasId: 'app', cellSize: CELL_SIZE })
+export const game = new Game({ canvasId: 'app', cellSize: CELL_SIZE })
 
 const tiles = Array(10)
   .fill(null)

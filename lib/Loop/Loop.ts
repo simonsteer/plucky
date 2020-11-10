@@ -1,7 +1,10 @@
 import { Game } from '../Game'
 
+const LOOP_INTERVAL = 1000 / 60
+const INTERVAL_TOLERANCE = 0.1
+
 export default class Loop {
-  start: number | undefined
+  previous: number | undefined
   game: Game
   private effects: (() => boolean)[] = []
 
@@ -15,20 +18,33 @@ export default class Loop {
     this.effects.push(callback)
   }
 
-  rotateTranslations = { x: 0, y: 0 }
+  id: number
+  run() {
+    let then = performance.now()
 
-  run = (timestamp = Date.now()) => {
+    const animateLoop = (now: number) => {
+      this.id = requestAnimationFrame(animateLoop)
+      const delta = now - then
+
+      if (delta >= LOOP_INTERVAL - INTERVAL_TOLERANCE) {
+        then = now - (delta % LOOP_INTERVAL)
+        this.animate(delta)
+      }
+    }
+    this.id = requestAnimationFrame(animateLoop)
+  }
+
+  private animate = (timestamp: number) => {
     if (!this.didStart) this.didStart = true
     const scene = this.game.currentScene
 
     if (!scene) {
-      this.start = undefined
-      window.requestAnimationFrame(this.run)
+      this.previous = undefined
       return
     }
 
-    if (!this.start) {
-      this.start = timestamp
+    if (this.previous === undefined) {
+      this.previous = timestamp
     }
 
     this.effects = this.effects.filter(effect => effect())
@@ -58,7 +74,5 @@ export default class Loop {
         )
       }
     })
-
-    window.requestAnimationFrame(this.run)
   }
 }

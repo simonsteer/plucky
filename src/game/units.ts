@@ -14,7 +14,7 @@ const stretch = (t: number[], f: number) =>
 const fairySpriteSheet = new SpriteSheet({
   src: fairySprite,
   numFrames: 3,
-  states: { default: stretch([0, 1, 2, 1], 15) },
+  states: { default: stretch([0, 1, 2, 1], 12) },
 })
 
 export function createFairy() {
@@ -38,14 +38,14 @@ export function createFairy() {
 const ogreSpriteSheet = new SpriteSheet({
   src: ogreSprite,
   numFrames: 3,
-  states: { default: stretch([0, 1, 2, 1], 15) },
+  states: { default: stretch([0, 1, 2, 1], 12) },
 })
 
 export function createOgre() {
   return new Unit({
     team: ogres,
     movement: {
-      steps: 3,
+      steps: 7,
       footprint: new DeltaConstraint([
         { x: 0, y: 0 },
         { x: 1, y: 0 },
