@@ -56,15 +56,14 @@ export default class Deployment extends GridEntity {
     if (!path.length) return this
 
     this.evacuateTiles()
-    await animateEntityMovement(
-      this.grid.game,
-      this,
-      path.map(c => ({
+    await animateEntityMovement({
+      entity: this,
+      path: path.map(c => ({
         x: c.x * this.grid.cellSize,
         y: c.y * this.grid.cellSize,
       })),
-      2
-    )
+      stepDuration: 200,
+    })
     this.occupyTiles()
 
     this.grid.cursor.reselect()

@@ -1,4 +1,4 @@
-import { Entity, SpriteSheet } from '../../lib'
+import { Easing, Entity, SpriteSheet } from '../../lib'
 import cursorSprite from '../assets/cursor.png'
 import { Grid } from '../lib/Grid'
 import { animateEntityMovement } from './utils'
@@ -47,20 +47,22 @@ export default class Cursor {
     return this.entities[0].origin
   }
 
-  show = () => {
+  show() {
     this.entities.forEach(entity => (entity.spriteOpacity = 1))
     return this
   }
 
-  hide = () => {
+  hide() {
     this.entities.forEach(entity => (entity.spriteOpacity = 0))
     return this
   }
 
   selectedEntity?: Entity
   async select(selectedEntity: Entity) {
+    // return a promise if we need to wait for selection animation to finish
     return new Promise(resolve => {
       if (!selectedEntity.spriteSheet) {
+        // if there's nothing to animate, resolve the promise
         resolve()
         return
       }
@@ -84,27 +86,26 @@ export default class Cursor {
 
       this.selectedEntity = selectedEntity
 
-      let cursorCount = 0
-      this.entities.forEach(cursorEntity => {
+      this.entities.forEach((cursorEntity, index) => {
         const [xBound, yBound] = cursorEntity.metadata.subtype as [
           string,
           string
         ]
         const destination = { x: bounds.x[xBound], y: bounds.y[yBound] }
-        animateEntityMovement(
-          this.grid.game,
-          cursorEntity,
-          [destination],
-          5
-        ).then(() => {
-          cursorCount++
-          if (cursorCount === 4) resolve()
+        animateEntityMovement({
+          entity: cursorEntity,
+          path: [destination],
+          stepDuration: 75,
+          easing: Easing.easeInSin,
+        }).then(() => {
+          // when all cursors have finished animating, we can resolve the promise
+          if (index === 3) resolve()
         })
       })
     })
   }
 
-  reselect = () => {
+  reselect() {
     const entity = getEntityFromCoords(this.grid, this.origin)
     if (entity) {
       this.select(entity)

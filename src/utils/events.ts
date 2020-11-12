@@ -20,7 +20,8 @@ export const handleSceneMouseMove = (scene: Scene, coordinates: JSONCoords) => {
 
 export function handleGridMouseOver(grid: Grid, { x, y }: JSONCoords) {
   const entityToSelect = getEntityFromCoords(grid, { x, y })
-  if (entityToSelect) grid.cursor.select(entityToSelect)
+  if (entityToSelect && entityToSelect !== grid.cursor.selectedEntity)
+    grid.cursor.select(entityToSelect)
 }
 
 function handleGridClicked(grid: Grid, { x, y }: JSONCoords) {
