@@ -1,11 +1,10 @@
 import { Deployment } from '../Deployment'
-import { Scene, JSONCoords, Game } from '../../../lib'
+import { Scene, JSONCoords } from '../../../lib'
 import { Tile } from '../Tile'
 import { Unit } from '../Unit'
 import { GridConfig } from './types'
 import { getGridDimensions } from './utils'
 import Cursor from '../../game/Cursor'
-import Cursor2 from '../../game/Cursor2'
 
 export default class Grid extends Scene {
   tiles: {
@@ -16,11 +15,11 @@ export default class Grid extends Scene {
   cellSize: number
   selectedDeployment?: { tiles: Tile[]; deployment: Deployment }
   timestamp: number
-  cursor: Cursor2
+  cursor: Cursor
 
   constructor({ game, tiles, cellSize }: GridConfig) {
     super(game, getGridDimensions(tiles))
-    this.cursor = new Cursor2(this)
+    this.cursor = new Cursor(this)
     this.cellSize = cellSize
     tiles.forEach((row, y) =>
       row.forEach((terrain, x) => {

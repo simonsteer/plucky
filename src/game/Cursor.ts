@@ -1,4 +1,4 @@
-import { DeltaConstraint, Easing, Entity, SpriteSheet } from '../../lib'
+import { Easing, Entity, SpriteSheet } from '../../lib'
 import cursorSprite from '../assets/cursor.png'
 import { Grid } from '../lib/Grid'
 import { animateEntityMovement } from './utils'
@@ -11,108 +11,132 @@ const cursorSpriteSheet = new SpriteSheet({
   numFrames: 4,
   states: {
     default: [0],
-    lowerlower: [0],
-    upperlower: [1],
-    upperupper: [3],
-    lowerupper: [2],
+    topLeft: [0],
+    topRight: [1],
+    bottomLeft: [2],
+    bottomRight: [3],
   },
 })
 
-export default class Cursor {
+type Bound = 'upper' | 'lower'
+
+type CursorCornerConfig = {
+  corner: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
+  shadowOffsetX: number
+  shadowOffsetY: number
+  x: number
+  y: number
+}
+
+export default class Cursor extends Entity {
   grid: Grid
-  entities: GridEntity[]
+  configs: CursorCornerConfig[] = [
+    { corner: 'topLeft', shadowOffsetX: 0, shadowOffsetY: 0, x: 0, y: 0 },
+    { corner: 'topRight', shadowOffsetX: 1, shadowOffsetY: 0, x: 0, y: 0 },
+    { corner: 'bottomLeft', shadowOffsetX: 0, shadowOffsetY: 1, x: 0, y: 0 },
+    { corner: 'bottomRight', shadowOffsetX: 1, shadowOffsetY: 1, x: 0, y: 0 },
+  ]
 
   constructor(grid: Grid) {
+    super(grid.game, { origin: { x: 0, y: 0 }, renderLayer: 2 })
     this.grid = grid
-    this.entities = ([
-      ['lower', 'lower'],
-      ['upper', 'lower'],
-      ['lower', 'upper'],
-      ['upper', 'upper'],
-    ] as const).map(
-      (subtype, i) =>
-        new GridEntity(game, {
-          grid,
-          footprint: new DeltaConstraint([{ x: 0, y: 0 }]),
-          origin: { x: 0, y: 0 },
-          spriteSheet: cursorSpriteSheet,
-          spriteState: subtype.join(''),
-          spriteXOffset: [1, 3].includes(i) ? 1 : 0,
-          spriteYOffset: [2, 3].includes(i) ? 1 : 0,
-          metadata: { type: 'cursor', subtype },
-          renderLayer: 2,
-          spriteOpacity: 0,
-        })
-    )
-    this.entities.forEach(entity => this.grid.add(entity))
-  }
-
-  get origin() {
-    return this.entities[0].origin
+    this.grid.add(this)
   }
 
   opacity = 0
   show() {
-    this.entities.forEach(entity => (entity.spriteOpacity = 1))
+    this.opacity = 1
     return this
   }
   hide() {
-    this.entities.forEach(entity => (entity.spriteOpacity = 0))
+    this.opacity = 0
     return this
   }
 
-  selectedEntity?: Entity
-  async select(selectedEntity: GridEntity) {
-    // return a promise if we need to wait for selection animation to finish
-    return new Promise(resolve => {
-      if (!selectedEntity.spriteSheet) {
-        // if there's nothing to animate, resolve the promise
-        resolve()
-        return
-      }
+  render() {
+    this.configs.forEach((config, index) => {
+      const prevAlpha = game.context.globalAlpha
+      game.context.globalAlpha = this.opacity
 
-      const bounds = {
-        x: {
-          lower: selectedEntity.origin.x,
-          upper:
-            selectedEntity.origin.x +
-            selectedEntity.spriteSheet!.frameWidth -
-            cursorSpriteSheet.frameWidth,
-        },
-        y: {
-          lower: selectedEntity.origin.y,
-          upper:
-            selectedEntity.origin.y +
-            selectedEntity.spriteSheet!.frameHeight -
-            cursorSpriteSheet.frameHeight,
-        },
-      }
-
-      this.selectedEntity = selectedEntity
-
-      this.entities.forEach((cursorEntity, index) => {
-        const [xBound, yBound] = cursorEntity.metadata.subtype as [
-          string,
-          string
-        ]
-        const destination = { x: bounds.x[xBound], y: bounds.y[yBound] }
-        animateEntityMovement({
-          entity: cursorEntity,
-          path: [destination],
-          stepDuration: 75,
-          easing: Easing.easeInSin,
-        }).then(() => {
-          // when all cursors have finished animating, we can resolve the promise
-          if (index === 3) resolve()
-        })
+      cursorSpriteSheet.render({
+        game,
+        x: this.origin.x + config.x + config.shadowOffsetX,
+        y: this.origin.y + config.y + config.shadowOffsetY,
+        instanceId: `${this.id}-${index}`,
+        state: config.corner,
       })
+
+      game.context.globalAlpha = prevAlpha
     })
   }
 
-  reselect() {
+  selectedEntity?: GridEntity
+  async select(selectedEntity: GridEntity) {
+    if (!selectedEntity.spriteSheet) return
+
+    this.selectedEntity = selectedEntity
+
+    await Promise.all([
+      animateEntityMovement({
+        entity: this,
+        path: [selectedEntity.origin],
+        stepDuration: 75,
+        easing: Easing.easeInSin,
+      }),
+      ...this.configs.map(this.animateCursorCorner),
+    ])
+  }
+
+  async reselect() {
     const entity = getEntityFromCoords(this.grid, this.origin)
     if (entity) {
-      this.select(entity)
+      await this.select(entity)
     }
+  }
+
+  private animateCursorCorner = (config: CursorCornerConfig) => {
+    if (!this.selectedEntity?.spriteSheet) return
+
+    let outputs = [0, 0]
+    switch (config.corner) {
+      case 'topRight':
+        outputs = [
+          this.selectedEntity.spriteSheet.frameWidth -
+            cursorSpriteSheet.frameWidth,
+          0,
+        ]
+        break
+      case 'bottomLeft':
+        outputs = [
+          0,
+          this.selectedEntity.spriteSheet.frameHeight -
+            cursorSpriteSheet.frameHeight,
+        ]
+        break
+      case 'bottomRight':
+        outputs = [
+          this.selectedEntity.spriteSheet.frameWidth -
+            cursorSpriteSheet.frameWidth,
+          this.selectedEntity.spriteSheet.frameHeight -
+            cursorSpriteSheet.frameHeight,
+        ]
+        break
+      default:
+        break
+    }
+
+    return this.game.loop.tween(
+      {
+        inputs: [config.x, config.y],
+        outputs,
+        id: `${this.id}-${config.corner}`,
+        duration: 75,
+        easing: Easing.easeInSin,
+      },
+      ([x, y]) => {
+        config.x = x
+        config.y = y
+      }
+    )
   }
 }
