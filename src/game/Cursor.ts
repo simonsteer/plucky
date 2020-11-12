@@ -1,9 +1,10 @@
-import { Easing, Entity, SpriteSheet } from '../../lib'
+import { DeltaConstraint, Easing, Entity, SpriteSheet } from '../../lib'
 import cursorSprite from '../assets/cursor.png'
 import { Grid } from '../lib/Grid'
 import { animateEntityMovement } from './utils'
 import { getEntityFromCoords } from '../utils/events'
 import { game } from '..'
+import GridEntity from '../lib/GridEntity'
 
 const cursorSpriteSheet = new SpriteSheet({
   src: cursorSprite,
@@ -19,27 +20,30 @@ const cursorSpriteSheet = new SpriteSheet({
 
 export default class Cursor {
   grid: Grid
-  entities = ([
-    ['lower', 'lower'],
-    ['upper', 'lower'],
-    ['lower', 'upper'],
-    ['upper', 'upper'],
-  ] as const).map(
-    (subtype, i) =>
-      new Entity(game, {
-        origin: { x: 0, y: 0 },
-        spriteSheet: cursorSpriteSheet,
-        spriteState: subtype.join(''),
-        spriteXOffset: [1, 3].includes(i) ? 1 : 0,
-        spriteYOffset: [2, 3].includes(i) ? 1 : 0,
-        metadata: { type: 'cursor', subtype },
-        renderLayer: 2,
-        spriteOpacity: 0,
-      })
-  )
+  entities: GridEntity[]
 
   constructor(grid: Grid) {
     this.grid = grid
+    this.entities = ([
+      ['lower', 'lower'],
+      ['upper', 'lower'],
+      ['lower', 'upper'],
+      ['upper', 'upper'],
+    ] as const).map(
+      (subtype, i) =>
+        new GridEntity(game, {
+          grid,
+          footprint: new DeltaConstraint([{ x: 0, y: 0 }]),
+          origin: { x: 0, y: 0 },
+          spriteSheet: cursorSpriteSheet,
+          spriteState: subtype.join(''),
+          spriteXOffset: [1, 3].includes(i) ? 1 : 0,
+          spriteYOffset: [2, 3].includes(i) ? 1 : 0,
+          metadata: { type: 'cursor', subtype },
+          renderLayer: 2,
+          spriteOpacity: 0,
+        })
+    )
     this.entities.forEach(entity => this.grid.add(entity))
   }
 
@@ -47,18 +51,18 @@ export default class Cursor {
     return this.entities[0].origin
   }
 
+  opacity = 0
   show() {
     this.entities.forEach(entity => (entity.spriteOpacity = 1))
     return this
   }
-
   hide() {
     this.entities.forEach(entity => (entity.spriteOpacity = 0))
     return this
   }
 
   selectedEntity?: Entity
-  async select(selectedEntity: Entity) {
+  async select(selectedEntity: GridEntity) {
     // return a promise if we need to wait for selection animation to finish
     return new Promise(resolve => {
       if (!selectedEntity.spriteSheet) {

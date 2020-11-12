@@ -1,5 +1,4 @@
 import { EventEmitter } from 'events'
-import { getGridCoordinatesFromXY } from './utils'
 import { Scene } from '../Scene'
 import { Loop } from '../Loop'
 

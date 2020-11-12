@@ -113,7 +113,7 @@ export default class Pathfinder {
     // from destination to origin
 
     // Add the origin waypoint at the end of the array
-    path.push(start)
+    // path.push(start)
 
     // Reverse the path so the result will be
     // from `start` to `goal`

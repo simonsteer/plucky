@@ -1,3 +1,4 @@
+import { Game } from '../Game'
 import { SpriteSheetConfig } from './types'
 
 export default class SpriteSheet {
@@ -32,29 +33,36 @@ export default class SpriteSheet {
 
   onload = (callback: () => void) => this.onloadHandlers.push(callback)
 
-  private frameIndices: { [id: number]: number } = {}
+  private frameIndices: { [id: string]: number } = {}
   private currentState: undefined | string
-  render = (
-    context: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    entityId: number,
-    state = 'default'
-  ) => {
+  render = ({
+    game,
+    x,
+    y,
+    instanceId,
+    state = 'default',
+  }: {
+    game: Game
+    x: number
+    y: number
+    instanceId: string
+    state?: string
+  }) => {
     if (!this.loaded) return
     if (!this.currentState) this.currentState = state
-    if (state !== this.currentState) this.frameIndices[entityId] = 0
+    if (state !== this.currentState) this.frameIndices[instanceId] = 0
 
     const frames = this.states[state]
-    const spriteXOffset = frames[this.frameIndices[entityId]] * this.frameWidth
+    const spriteXOffset =
+      frames[this.frameIndices[instanceId]] * this.frameWidth
 
-    if (this.frameIndices[entityId] < frames.length - 1) {
-      this.frameIndices[entityId]++
+    if (this.frameIndices[instanceId] < frames.length - 1) {
+      this.frameIndices[instanceId]++
     } else {
-      this.frameIndices[entityId] = 0
+      this.frameIndices[instanceId] = 0
     }
 
-    context.drawImage(
+    game.context.drawImage(
       this.image,
       spriteXOffset,
       0,

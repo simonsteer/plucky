@@ -28,23 +28,27 @@ export default class Loop {
 
       if (delta >= LOOP_INTERVAL - INTERVAL_TOLERANCE) {
         then = now - (delta % LOOP_INTERVAL)
-        this.animate(delta)
+        this.render(delta)
       }
     }
     this.id = requestAnimationFrame(animateLoop)
   }
 
+  private tweenIndex = 0
+  private activeTweens: { [id: string]: number } = {}
   tween(
     {
       inputs,
       outputs,
       duration = 300,
       easing = n => n,
+      id,
     }: {
       inputs: number[]
       outputs: number[]
       duration?: number
       easing?: (n: number) => number
+      id: string
     },
     onValuesChanged: (values: number[], progress: number) => void | boolean
   ) {
@@ -53,9 +57,19 @@ export default class Loop {
       return output - input
     })
 
+    this.tweenIndex++
+    const tweenId = this.tweenIndex
+    this.activeTweens[id] = tweenId
+
     const startTime = performance.now()
     return new Promise<void>(resolve =>
       this.do(() => {
+        // the tween was interrupted by a new tween with the same id
+        if (this.activeTweens[id] !== tweenId) {
+          resolve()
+          return false
+        }
+
         const progress = Math.min(1, (performance.now() - startTime) / duration)
         const result = onValuesChanged(
           deltas.map(
@@ -63,20 +77,26 @@ export default class Loop {
           ),
           progress
         )
+
         if (typeof result === 'boolean') {
-          if (!result) resolve()
+          if (result === false) resolve()
           return result
         }
+
         if (progress === 1) {
+          // animation is done, we no longer have to keep track
+          // of the id of the active tween
+          delete this.activeTweens[id]
           resolve()
           return false
         }
+
         return true
       })
     )
   }
 
-  private animate = (timestamp: number) => {
+  private render = (timestamp: number) => {
     if (!this.didStart) this.didStart = true
     const scene = this.game.currentScene
 
@@ -90,31 +110,6 @@ export default class Loop {
     }
 
     this.effects = this.effects.filter(effect => effect())
-    scene.map(entity => {
-      if (!entity.spriteSheet) return
-
-      const x = entity.origin.x
-      const y = entity.origin.y
-
-      this.game.context.globalAlpha = entity.spriteOpacity
-      entity.spriteSheet.render(
-        this.game.context,
-        x + entity.spriteXOffset,
-        y + entity.spriteYOffset,
-        entity.id,
-        entity.spriteState
-      )
-      this.game.context.globalAlpha = 1
-
-      if (entity.spriteHighlight) {
-        this.game.context.fillStyle = entity.spriteHighlight
-        this.game.context.fillRect(
-          x,
-          y,
-          entity.spriteSheet.frameWidth,
-          entity.spriteSheet.frameHeight
-        )
-      }
-    })
+    scene.map(entity => entity.render())
   }
 }

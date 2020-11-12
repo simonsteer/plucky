@@ -10,7 +10,7 @@ export default class Tile extends GridEntity {
 
   constructor({
     grid,
-    coordinates: { x, y },
+    coordinates,
     terrain,
   }: {
     grid: Grid
@@ -19,7 +19,7 @@ export default class Tile extends GridEntity {
   }) {
     super(game, {
       grid,
-      origin: { x, y },
+      origin: coordinates,
       footprint: new DeltaConstraint([{ x: 0, y: 0 }]),
       metadata: { type: 'tile', terrain },
       spriteSheet: terrain.spriteSheet,

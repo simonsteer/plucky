@@ -1,8 +1,5 @@
 import { Entity, JSONCoords } from '../../lib'
 
-const activeAnimations: { [key: number]: number } = {}
-let animationIndex = 0
-
 export const animateEntityMovement = ({
   entity,
   path,
@@ -14,10 +11,6 @@ export const animateEntityMovement = ({
   entity: Entity
   path: JSONCoords[]
 }) => {
-  animationIndex++
-  const entityAnimation = animationIndex
-  activeAnimations[entity.id] = entityAnimation
-
   let done = false
   const updateEntityCoords = (
     [x, y]: number[],
@@ -27,10 +20,7 @@ export const animateEntityMovement = ({
     entity.origin.x = x
     entity.origin.y = y
 
-    if (
-      activeAnimations[entity.id] !== entityAnimation ||
-      (progress === 1 && index === path.length - 1)
-    ) {
+    if (progress === 1 && index === path.length - 1) {
       done = true
     }
   }
@@ -45,6 +35,7 @@ export const animateEntityMovement = ({
           outputs: [target.x, target.y],
           duration: stepDuration,
           easing,
+          id: entity.id,
         },
         ([x, y], progress) => {
           updateEntityCoords([x, y], progress, index)

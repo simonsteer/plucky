@@ -1,10 +1,9 @@
 import { Entity } from '../Entity'
 import { Game } from '../Game'
-
-let id = 0
+import { v4 as uuid } from 'uuid'
 
 export default class Scene {
-  id: number
+  id = uuid()
   entities: Entity[] = []
   game: Game
 
@@ -17,8 +16,6 @@ export default class Scene {
     this.game = game
     this.width = width
     this.height = height
-    id++
-    this.id = id
   }
 
   load() {
