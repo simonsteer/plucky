@@ -41,12 +41,14 @@ export default class SpriteSheet {
     y,
     instanceId,
     state = 'default',
+    rotate,
   }: {
     game: Game
     x: number
     y: number
     instanceId: string
     state?: string
+    rotate?: number
   }) => {
     if (!this.loaded) return
     if (!this.currentState) this.currentState = state
@@ -62,16 +64,26 @@ export default class SpriteSheet {
       this.frameIndices[instanceId] = 0
     }
 
+    game.context.setTransform(
+      game.context
+        .getTransform()
+        .translate(x + this.frameWidth / 2, y + this.frameHeight / 2)
+        .rotate(0, 0, rotate ?? 0)
+        .translate(-this.frameWidth / 2, -this.frameHeight / 2)
+    )
+
     game.context.drawImage(
       this.image,
       spriteXOffset,
       0,
       this.frameWidth,
       this.frameHeight,
-      x,
-      y,
+      0,
+      0,
       this.frameWidth,
       this.frameHeight
     )
+
+    game.context.resetTransform()
   }
 }

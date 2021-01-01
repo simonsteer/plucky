@@ -42,6 +42,7 @@ export default class Deployment extends GridEntity {
       renderLayer: 1,
     })
     this.pathfinder = new Pathfinder(this.createDijkstraGraph())
+    this.occupyTiles()
   }
 
   get unit() {

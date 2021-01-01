@@ -4,7 +4,8 @@
     "target": "es2016",
     "jsx": "preserve",
     "sourceMap": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "noImplicitAny": true
   },
   "exclude": ["node_modules", "**/node_modules/*"]
 }

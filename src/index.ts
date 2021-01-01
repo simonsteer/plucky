@@ -3,7 +3,7 @@ import { handleSceneClicked, handleSceneMouseMove } from './utils/events'
 import { Grid, GridConfig } from './lib/Grid'
 import { forest, plains } from './game/terrain'
 import { createFairy, createOgre } from './game/units'
-import TextRenderer from './game/TextRenderer'
+import TextRenderer from './game/TextFactory'
 
 const CELL_SIZE = 20
 
@@ -33,6 +33,6 @@ window['loop'] = game.loop
 window['createOgre'] = createOgre
 window['createFairy'] = createFairy
 
-const textRenderer = new TextRenderer(game)
+const textRenderer = new TextRenderer(grid)
 
 window['textRenderer'] = textRenderer

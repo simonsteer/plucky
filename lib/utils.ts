@@ -4,7 +4,7 @@ export function memoize<F extends Func>(
   fn: F,
   hashingMethod: (...args: Parameters<F>) => string,
   cacheSize = 100
-) {
+): F {
   const relevancy: string[] = []
   const cache = new Map<string, ReturnType<F>>()
 

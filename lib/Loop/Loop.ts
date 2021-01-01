@@ -14,9 +14,18 @@ export default class Loop {
 
   didStart = false
 
+  /**
+   *
+   * @param callback
+   * Pass in a callback to perform side effects as the loop runs, (ex: animating a sprite's movement).
+   * This callback should return a boolean, which indicates whether to keep being called or to stop its
+   * execution the next time the loop runs (see `Loop.tween` for implementation example).
+   */
   do(callback: () => boolean) {
     this.effects.push(callback)
   }
+
+  stop() {}
 
   id: number
   run() {
@@ -31,6 +40,7 @@ export default class Loop {
         this.render(delta)
       }
     }
+
     this.id = requestAnimationFrame(animateLoop)
   }
 
@@ -57,6 +67,9 @@ export default class Loop {
       return output - input
     })
 
+    // Increment the tweens that have occurred and map the advanced
+    // index to the provided id using our activeTweens object. We use
+    // this mapping to keep track of tweens via their ids
     this.tweenIndex++
     const tweenId = this.tweenIndex
     this.activeTweens[id] = tweenId
@@ -71,21 +84,27 @@ export default class Loop {
         }
 
         const progress = Math.min(1, (performance.now() - startTime) / duration)
-        const result = onValuesChanged(
-          deltas.map(
-            (delta, index) => inputs[index] + easing(progress) * delta
-          ),
-          progress
-        )
 
-        if (typeof result === 'boolean') {
-          if (result === false) resolve()
-          return result
+        const nextValues = deltas.map(
+          (delta, index) => inputs[index] + easing(progress) * delta
+        )
+        const valueChangeResult = onValuesChanged(nextValues, progress)
+
+        if (typeof valueChangeResult === 'boolean') {
+          // if onValuesChanged returned false, we are bailing out of the tween,
+          // and exiting loop, so we can resolve our promise and delete the id
+          // from the activeTweens object to prevent it from growing indefinitely
+          if (!valueChangeResult) {
+            delete this.activeTweens[id]
+            resolve()
+          }
+          return valueChangeResult
         }
 
+        // animation is complete
         if (progress === 1) {
-          // animation is done, we no longer have to keep track
-          // of the id of the active tween
+          // no longer have to keep track of the given tween id, we delete the id
+          // from the activeTweens object to prevent it from growing indefinitely
           delete this.activeTweens[id]
           resolve()
           return false

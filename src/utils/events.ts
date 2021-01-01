@@ -1,10 +1,8 @@
 import { Deployment } from '../lib/Deployment'
 import { Grid } from '../lib/Grid'
-import GridEntity from '../lib/GridEntity'
 import { Tile } from '../lib/Tile'
-import { Entity, JSONCoords, Scene, XYCoords } from '../../lib'
+import { JSONCoords, Scene } from '../../lib'
 import { getGridCoordinatesFromXY } from '../../lib/Game/utils'
-import { cursorTo } from 'readline'
 
 export const handleSceneClicked = (scene: Scene, coordinates: JSONCoords) => {
   if (scene instanceof Grid) {
@@ -51,7 +49,6 @@ function handleTileClicked(grid: Grid, tile: Tile) {
     if (path) deployment.move(path)
   }
   grid.deselectDeployment()
-  grid.cursor.reselect()
 }
 
 export const getEntityFromCoords = (grid: Grid, coords: JSONCoords) => {

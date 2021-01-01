@@ -4,4 +4,5 @@ export interface EntityConfig {
   metadata?: any
   renderLayer?: number
   origin: JSONCoords
+  render?: () => void
 }

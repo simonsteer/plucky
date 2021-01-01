@@ -5,8 +5,8 @@ export default class DeltaConstraint {
   timestamp = 0
 
   private lookupMap: {
-    [key: string]: {
-      [key: string]: true
+    [x: string]: {
+      [y: string]: true
     }
   } = {}
   private deltas: JSONCoords[] = []

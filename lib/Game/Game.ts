@@ -17,6 +17,7 @@ export default class Game extends EventEmitter {
 
   canvas: HTMLCanvasElement
   context: CanvasRenderingContext2D
+
   viewportDimensions: { width: number; height: number; cellSize: number }
 
   constructor({

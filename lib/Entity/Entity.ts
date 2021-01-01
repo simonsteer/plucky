@@ -12,12 +12,13 @@ export default class Entity {
 
   constructor(
     game: Game,
-    { metadata = {}, renderLayer = 0, origin }: EntityConfig
+    { metadata = {}, renderLayer = 0, origin, render }: EntityConfig
   ) {
     this.game = game
     this.metadata = metadata
     this.renderLayer = renderLayer
     this.origin = new XYCoords(origin)
+    if (render) this.render = render
   }
 
   render() {}

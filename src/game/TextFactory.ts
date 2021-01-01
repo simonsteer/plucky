@@ -1,4 +1,4 @@
-import { Game, JSONCoords, SpriteSheet } from '../../lib'
+import { Entity, Game, JSONCoords, Scene, SpriteSheet } from '../../lib'
 import textSprite from '../assets/text.png'
 import { v4 as uuid } from 'uuid'
 
@@ -92,28 +92,41 @@ const textSpriteSheet = new SpriteSheet({
   },
 })
 
-export default class TextRenderer {
+export default class TextFactory {
   id = uuid()
-  game: Game
-  constructor(game: Game) {
-    this.game = game
+  scene: Scene
+  constructor(scene: Scene) {
+    this.scene = scene
   }
 
-  render(text: string, at: JSONCoords) {
+  create(text: string, at: JSONCoords) {
     const lines = text.split('\n')
-    lines.forEach((line, lineIndex) =>
-      line.split('').forEach((char, charIndex) => {
-        if (char === ' ') {
-          return
-        }
-        textSpriteSheet.render({
-          game: this.game,
-          x: at.x + charIndex * textSpriteSheet.frameWidth,
-          y: at.y + lineIndex * textSpriteSheet.frameHeight,
-          instanceId: this.id,
-          state: char,
+
+    const render = () => {
+      lines.forEach((line, lineIndex) =>
+        line.split('').forEach((char, charIndex) => {
+          if (char === ' ') {
+            return
+          }
+          textSpriteSheet.render({
+            game: this.scene.game,
+            x: at.x + charIndex * textSpriteSheet.frameWidth,
+            y: at.y + lineIndex * textSpriteSheet.frameHeight,
+            instanceId: this.id,
+            state: char,
+          })
         })
-      })
-    )
+      )
+    }
+
+    const entity = new Entity(this.scene.game, {
+      origin: at,
+      metadata: { type: 'text' },
+      renderLayer: 2,
+      render,
+    })
+
+    this.scene.add(entity)
+    return entity
   }
 }

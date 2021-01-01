@@ -18,8 +18,6 @@ const cursorSpriteSheet = new SpriteSheet({
   },
 })
 
-type Bound = 'upper' | 'lower'
-
 type CursorCornerConfig = {
   corner: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
   shadowOffsetX: number
@@ -38,7 +36,7 @@ export default class Cursor extends Entity {
   ]
 
   constructor(grid: Grid) {
-    super(grid.game, { origin: { x: 0, y: 0 }, renderLayer: 2 })
+    super(grid.game, { origin: { x: 0, y: 0 }, renderLayer: 10 })
     this.grid = grid
     this.grid.add(this)
   }
@@ -55,9 +53,7 @@ export default class Cursor extends Entity {
 
   render() {
     this.configs.forEach((config, index) => {
-      const prevAlpha = game.context.globalAlpha
       game.context.globalAlpha = this.opacity
-
       cursorSpriteSheet.render({
         game,
         x: this.origin.x + config.x + config.shadowOffsetX,
@@ -65,8 +61,6 @@ export default class Cursor extends Entity {
         instanceId: `${this.id}-${index}`,
         state: config.corner,
       })
-
-      game.context.globalAlpha = prevAlpha
     })
   }
 

@@ -32,6 +32,7 @@ export default class GridEntity extends Entity {
   spriteXOffset: number
   spriteYOffset: number
   spriteOpacity: number
+  spriteRotate?: number
 
   constructor(
     game: Game,
@@ -80,11 +81,15 @@ export default class GridEntity extends Entity {
   }
 
   area = memoize(
-    (fromCoords = this.origin) =>
+    (fromCoords?: JSONCoords) =>
       this.footprint.adjacent(
-        getGridCoordinatesFromXY(fromCoords.x, fromCoords.y, this.grid.cellSize)
+        getGridCoordinatesFromXY(
+          (fromCoords || this.origin).x,
+          (fromCoords || this.origin).y,
+          this.grid.cellSize
+        )
       ),
-    (fromCoords = this.origin) =>
+    (fromCoords = this.origin.raw) =>
       [XYCoords.hash(fromCoords), this.footprint.timestamp].join()
   )
 
@@ -94,15 +99,14 @@ export default class GridEntity extends Entity {
     const x = this.origin.x
     const y = this.origin.y
 
-    this.game.context.globalAlpha = this.spriteOpacity
     this.spriteSheet.render({
       game: this.game,
       x: x + this.spriteXOffset,
       y: y + this.spriteYOffset,
       instanceId: this.id,
       state: this.spriteState,
+      rotate: this.spriteRotate,
     })
-    this.game.context.globalAlpha = 1
 
     if (this.spriteHighlight) {
       this.game.context.fillStyle = this.spriteHighlight

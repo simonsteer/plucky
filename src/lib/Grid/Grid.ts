@@ -5,6 +5,7 @@ import { Unit } from '../Unit'
 import { GridConfig } from './types'
 import { getGridDimensions } from './utils'
 import Cursor from '../../game/Cursor'
+import TextFactory from '../../game/TextFactory'
 
 export default class Grid extends Scene {
   tiles: {
@@ -16,11 +17,15 @@ export default class Grid extends Scene {
   selectedDeployment?: { tiles: Tile[]; deployment: Deployment }
   timestamp: number
   cursor: Cursor
+  textFactory: TextFactory
 
   constructor({ game, tiles, cellSize }: GridConfig) {
     super(game, getGridDimensions(tiles))
+
     this.cursor = new Cursor(this)
+    this.textFactory = new TextFactory(this)
     this.cellSize = cellSize
+
     tiles.forEach((row, y) =>
       row.forEach((terrain, x) => {
         const tile = new Tile({
@@ -33,6 +38,7 @@ export default class Grid extends Scene {
         this.add(tile)
       })
     )
+
     this.initCursor()
   }
 
