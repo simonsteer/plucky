@@ -7,7 +7,11 @@ import TextRenderer from './game/TextFactory'
 
 const CELL_SIZE = 20
 
-export const game = new Game({ canvasId: 'app', cellSize: CELL_SIZE })
+export const game = new Game({
+  canvasId: 'app',
+  viewportHeight: CELL_SIZE * 10,
+  viewportWidth: CELL_SIZE * 10,
+})
 
 const tiles = Array(10)
   .fill(null)

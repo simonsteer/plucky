@@ -18,16 +18,14 @@ export default class Game extends EventEmitter {
   canvas: HTMLCanvasElement
   context: CanvasRenderingContext2D
 
-  viewportDimensions: { width: number; height: number; cellSize: number }
+  viewportDimensions: { width: number; height: number }
 
   constructor({
     canvasId,
-    cellSize = 24,
-    viewportHeight = 10,
-    viewportWidth = 10,
+    viewportHeight = 192,
+    viewportWidth = 320,
   }: {
     canvasId: string
-    cellSize?: number
     viewportWidth?: number
     viewportHeight?: number
   }) {
@@ -38,9 +36,8 @@ export default class Game extends EventEmitter {
         `No HTMLCanvasElement was found with the id "${canvasId}"`
       )
     this.viewportDimensions = {
-      height: viewportHeight * cellSize,
-      width: viewportWidth * cellSize,
-      cellSize,
+      height: viewportHeight,
+      width: viewportWidth,
     }
     canvas.height = this.viewportDimensions.height
     canvas.width = this.viewportDimensions.width
