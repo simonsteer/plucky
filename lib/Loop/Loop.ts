@@ -31,6 +31,23 @@ export default class Loop {
     this.id = requestAnimationFrame(animateLoop)
   }
 
+  private render = (timestamp: number) => {
+    if (!this.didStart) this.didStart = true
+    const scene = this.game.currentScene
+
+    if (!scene) {
+      this.previous = undefined
+      return
+    }
+
+    if (this.previous === undefined) {
+      this.previous = timestamp
+    }
+
+    this.effects = this.effects.filter(effect => effect())
+    scene.map(entity => entity.render())
+  }
+
 
   /**
    *
@@ -55,16 +72,16 @@ export default class Loop {
     })
   }
 
-  async doFor(duration: number, callback: (timePassed: number) => (void)) {
-    return await this.doUntil((timeElapsed) => {
+  doFor(duration: number, callback: (timePassed: number) => (void)) {
+    return this.doUntil((timeElapsed) => {
       callback(timeElapsed)
       if (timeElapsed >= duration) return false
       return true
     })
   }
 
-  async doForUntil(duration: number, callback: (timePassed: number) => (void | boolean)) {
-    return await this.doUntil((timeElapsed) => {
+  doForUntil(duration: number, callback: (timePassed: number) => (void | boolean)) {
+    return this.doUntil((timeElapsed) => {
       const result = callback(timeElapsed)
       if (timeElapsed >= duration || result === false) return false
       return true
@@ -132,23 +149,6 @@ export default class Loop {
       return true
     }
 
-    return await this.doForUntil(duration, tweenValues)
-  }
-
-  private render = (timestamp: number) => {
-    if (!this.didStart) this.didStart = true
-    const scene = this.game.currentScene
-
-    if (!scene) {
-      this.previous = undefined
-      return
-    }
-
-    if (this.previous === undefined) {
-      this.previous = timestamp
-    }
-
-    this.effects = this.effects.filter(effect => effect())
-    scene.map(entity => entity.render())
+    await this.doForUntil(duration, tweenValues)
   }
 }
