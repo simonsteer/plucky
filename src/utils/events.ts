@@ -54,7 +54,9 @@ function handleTileClicked(grid: Grid, tile: Tile) {
 export const getEntityFromCoords = (grid: Grid, coords: JSONCoords) => {
   const { x, y } = getGridCoordinatesFromXY(coords.x, coords.y, grid.cellSize)
   const tile = grid.tiles[x]?.[y]
+
   if (!tile) return undefined
   if (grid.selectedDeployment && tile.spriteHighlight) return tile
+
   return tile.deployment || tile
 }

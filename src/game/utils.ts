@@ -17,8 +17,8 @@ export const animateEntityMovement = ({
     progress: number,
     index: number
   ) => {
-    entity.origin.x = x
-    entity.origin.y = y
+    entity.metadata.origin.x = x
+    entity.metadata.origin.y = y
 
     if (progress === 1 && index === path.length - 1) {
       done = true
@@ -31,7 +31,7 @@ export const animateEntityMovement = ({
 
       await entity.game.loop.tween(
         {
-          inputs: [entity.origin.x, entity.origin.y],
+          inputs: [entity.metadata.origin.x, entity.metadata.origin.y],
           outputs: [target.x, target.y],
           duration: stepDuration,
           easing,

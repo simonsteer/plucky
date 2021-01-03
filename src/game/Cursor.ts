@@ -1,4 +1,4 @@
-import { Easing, Entity, SpriteSheet } from '../../lib'
+import { Easing, Entity, SpriteSheet, XYCoords } from '../../lib'
 import cursorSprite from '../assets/cursor.png'
 import { Grid } from '../lib/Grid'
 import { animateEntityMovement } from './utils'
@@ -36,7 +36,7 @@ export default class Cursor extends Entity {
   ]
 
   constructor(grid: Grid) {
-    super(grid.game, { origin: { x: 0, y: 0 }, renderLayer: 10 })
+    super(grid.game, { metadata: { origin: new XYCoords({ x: 0, y: 0 }) }, renderLayer: 10 })
     this.grid = grid
     this.grid.add(this)
   }
@@ -56,8 +56,8 @@ export default class Cursor extends Entity {
       game.context.globalAlpha = this.opacity
       cursorSpriteSheet.render({
         game,
-        x: this.origin.x + config.x + config.shadowOffsetX,
-        y: this.origin.y + config.y + config.shadowOffsetY,
+        x: this.metadata.origin.x + config.x + config.shadowOffsetX,
+        y: this.metadata.origin.y + config.y + config.shadowOffsetY,
         instanceId: `${this.id}-${index}`,
         state: config.corner,
       })
@@ -73,7 +73,7 @@ export default class Cursor extends Entity {
     await Promise.all([
       animateEntityMovement({
         entity: this,
-        path: [selectedEntity.origin],
+        path: [selectedEntity.metadata.origin],
         stepDuration: 75,
         easing: Easing.easeInSin,
       }),
@@ -82,7 +82,7 @@ export default class Cursor extends Entity {
   }
 
   async reselect() {
-    const entity = getEntityFromCoords(this.grid, this.origin)
+    const entity = getEntityFromCoords(this.grid, this.metadata.origin)
     if (entity) {
       await this.select(entity)
     }

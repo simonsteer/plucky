@@ -51,9 +51,8 @@ export default class GridEntity extends Entity {
     }: GridConfig
   ) {
     super(game, {
-      metadata,
+      metadata: { ...metadata, origin: new XYCoords({x: x * grid.cellSize, y: y * grid.cellSize}) },
       renderLayer,
-      origin: { x: x * grid.cellSize, y: y * grid.cellSize },
     })
     this.grid = grid
     this.footprint = footprint
@@ -67,37 +66,37 @@ export default class GridEntity extends Entity {
 
   get gridCoordinates() {
     return getGridCoordinatesFromXY(
-      this.origin.x,
-      this.origin.y,
+      this.metadata.origin.x,
+      this.metadata.origin.y,
       this.grid.cellSize
     )
   }
 
   updateGridCoordinates({ x, y }: JSONCoords) {
-    this.origin.x = x * this.grid.cellSize
-    this.origin.y = y * this.grid.cellSize
+    this.metadata.origin.x = x * this.grid.cellSize
+    this.metadata.origin.y = y * this.grid.cellSize
 
     return this
   }
 
   area = memoize(
-    (fromCoords?: JSONCoords) =>
+    (fromCoords = this.metadata.origin as JSONCoords) =>
       this.footprint.adjacent(
         getGridCoordinatesFromXY(
-          (fromCoords || this.origin).x,
-          (fromCoords || this.origin).y,
+          (fromCoords).x,
+          (fromCoords).y,
           this.grid.cellSize
         )
       ),
-    (fromCoords = this.origin.raw) =>
+    (fromCoords = this.metadata.origin) =>
       [XYCoords.hash(fromCoords), this.footprint.timestamp].join()
   )
 
   render() {
     if (!this.spriteSheet) return
 
-    const x = this.origin.x
-    const y = this.origin.y
+    const x = this.metadata.origin.x
+    const y = this.metadata.origin.y
 
     this.spriteSheet.render({
       game: this.game,
