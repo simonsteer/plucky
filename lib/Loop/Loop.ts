@@ -14,21 +14,8 @@ export default class Loop {
 
   didStart = false
 
-  /**
-   *
-   * @param callback
-   * Pass in a callback to perform side effects as the loop runs, (ex: animating a sprite's movement).
-   * This callback should return a boolean, which indicates whether to keep being called or to stop its
-   * execution the next time the loop runs (see `Loop.tween` for implementation example).
-   */
-  do(callback: () => boolean) {
-    this.effects.push(callback)
-  }
-
-  stop() {}
-
   id: number
-  run() {
+  start() {
     let then = performance.now()
 
     const animateLoop = (now: number) => {
@@ -44,9 +31,49 @@ export default class Loop {
     this.id = requestAnimationFrame(animateLoop)
   }
 
+
+  /**
+   *
+   * @param callback
+   * Pass in a callback to perform side effects as the loop runs, (ex: animating a sprite's movement).
+   * This callback should return a boolean, which indicates whether to keep being called or to stop its
+   * execution the next time the loop runs (see `Loop.tween` for implementation example).
+   */
+  doUntil(callback: (timeElapsed: number) => boolean) {
+    return new Promise<number>((resolve) => {
+      let startTime: number
+      const callbackWithTimeElapsed = () => {
+        if (startTime === undefined) {
+          startTime = performance.now()
+        }
+        const timeElapsed = performance.now() - startTime
+        const result = callback(timeElapsed)
+        if (result === false) resolve(timeElapsed)
+        return result
+      }
+      this.effects.push(callbackWithTimeElapsed)
+    })
+  }
+
+  async doFor(duration: number, callback: (timePassed: number) => (void)) {
+    return await this.doUntil((timeElapsed) => {
+      callback(timeElapsed)
+      if (timeElapsed >= duration) return false
+      return true
+    })
+  }
+
+  async doForUntil(duration: number, callback: (timePassed: number) => (void | boolean)) {
+    return await this.doUntil((timeElapsed) => {
+      const result = callback(timeElapsed)
+      if (timeElapsed >= duration || result === false) return false
+      return true
+    })
+  }
+
   private tweenIndex = 0
   private activeTweens: { [id: string]: number } = {}
-  tween(
+  async tween(
     {
       inputs,
       outputs,
@@ -74,45 +101,38 @@ export default class Loop {
     const tweenId = this.tweenIndex
     this.activeTweens[id] = tweenId
 
-    const startTime = performance.now()
-    return new Promise<void>(resolve =>
-      this.do(() => {
-        // the tween was interrupted by a new tween with the same id
-        if (this.activeTweens[id] !== tweenId) {
-          resolve()
-          return false
-        }
+    const tweenValues = (elapsed: number) => {
+      // the tween was interrupted by a new tween with the same id
+      if (this.activeTweens[id] !== tweenId) {
+        return false
+      }
 
-        const progress = Math.min(1, (performance.now() - startTime) / duration)
+      const progress = Math.min(1, elapsed / duration)
+      const nextValues = deltas.map(
+        (delta, index) => inputs[index] + easing(progress) * delta
+      )
+      const valueChangeResult = onValuesChanged(nextValues, progress)
 
-        const nextValues = deltas.map(
-          (delta, index) => inputs[index] + easing(progress) * delta
-        )
-        const valueChangeResult = onValuesChanged(nextValues, progress)
+      if (typeof valueChangeResult === 'boolean') {
+        // if onValuesChanged returned false, we are bailing out of the tween,
+        // and exiting loop, so we delete the id from the activeTweens object to
+        // prevent it from growing indefinitely
+        if (!valueChangeResult) delete this.activeTweens[id]
+        return valueChangeResult
+      }
 
-        if (typeof valueChangeResult === 'boolean') {
-          // if onValuesChanged returned false, we are bailing out of the tween,
-          // and exiting loop, so we can resolve our promise and delete the id
-          // from the activeTweens object to prevent it from growing indefinitely
-          if (!valueChangeResult) {
-            delete this.activeTweens[id]
-            resolve()
-          }
-          return valueChangeResult
-        }
+      // animation is complete
+      if (progress === 1) {
+        // no longer have to keep track of the given tween id, we delete the id
+        // from the activeTweens object to prevent it from growing indefinitely
+        delete this.activeTweens[id]
+        return false
+      }
 
-        // animation is complete
-        if (progress === 1) {
-          // no longer have to keep track of the given tween id, we delete the id
-          // from the activeTweens object to prevent it from growing indefinitely
-          delete this.activeTweens[id]
-          resolve()
-          return false
-        }
+      return true
+    }
 
-        return true
-      })
-    )
+    return await this.doForUntil(duration, tweenValues)
   }
 
   private render = (timestamp: number) => {

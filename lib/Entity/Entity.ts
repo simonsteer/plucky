@@ -10,7 +10,7 @@ export default class Entity {
 
   constructor(
     game: Game,
-    { metadata = {}, renderLayer = 0, render }: EntityConfig
+    { metadata = {}, renderLayer = 0, render } = {} as EntityConfig
   ) {
     this.game = game
     this.metadata = metadata
@@ -18,5 +18,5 @@ export default class Entity {
     if (render) this.render = render
   }
 
-  render() {}
+  render() { }
 }

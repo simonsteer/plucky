@@ -52,7 +52,7 @@ export default class Game extends EventEmitter {
   loadScene = (scene: Scene) => {
     this.currentScene = scene
     if (!this.loop.didStart) {
-      this.loop.run()
+      this.loop.start()
     }
   }
 

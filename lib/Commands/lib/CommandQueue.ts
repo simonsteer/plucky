@@ -8,7 +8,7 @@ export default class CommandQueue {
   }
 
   exec(...commands: Command[]) {
-    if (this.index < this.queue.length - 1) {
+    if (this.canRedo) {
       this.queue = this.queue.slice(0, this.index + 1)
     }
 

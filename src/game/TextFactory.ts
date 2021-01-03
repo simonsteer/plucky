@@ -99,34 +99,22 @@ export default class TextFactory {
     this.scene = scene
   }
 
-  create(text: string, at: JSONCoords) {
+  render(text: string, coords: JSONCoords) {
     const lines = text.split('\n')
 
-    const render = () => {
-      lines.forEach((line, lineIndex) =>
-        line.split('').forEach((char, charIndex) => {
-          if (char === ' ') {
-            return
-          }
-          textSpriteSheet.render({
-            game: this.scene.game,
-            x: at.x + charIndex * textSpriteSheet.frameWidth,
-            y: at.y + lineIndex * textSpriteSheet.frameHeight,
-            instanceId: this.id,
-            state: char,
-          })
+    lines.forEach((line, lineIndex) =>
+      line.split('').forEach((char, charIndex) => {
+        if (char === ' ') {
+          return
+        }
+        textSpriteSheet.render({
+          game: this.scene.game,
+          x: coords.x + charIndex * textSpriteSheet.frameWidth,
+          y: coords.y + lineIndex * textSpriteSheet.frameHeight,
+          instanceId: this.id,
+          state: char,
         })
-      )
-    }
-
-    const entity = new Entity(this.scene.game, {
-      origin: at,
-      metadata: { type: 'text' },
-      renderLayer: 2,
-      render,
-    })
-
-    this.scene.add(entity)
-    return entity
+      })
+    )
   }
 }

@@ -1,4 +1,4 @@
 export default abstract class Command {
-  exec() {}
-  undo() {}
+  abstract exec(): void
+  abstract undo(): void
 }
