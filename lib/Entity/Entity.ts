@@ -1,6 +1,5 @@
 import { v4 as uuid } from 'uuid'
 import { Game } from '../Game'
-import { XYCoords } from '../XYCoords'
 import { EntityConfig } from './types'
 
 export default class Entity {
@@ -8,16 +7,14 @@ export default class Entity {
   metadata: any
   game: Game
   renderLayer: number
-  origin: XYCoords
 
   constructor(
     game: Game,
-    { metadata = {}, renderLayer = 0, origin, render }: EntityConfig
+    { metadata = {}, renderLayer = 0, render }: EntityConfig
   ) {
     this.game = game
     this.metadata = metadata
     this.renderLayer = renderLayer
-    this.origin = new XYCoords(origin)
     if (render) this.render = render
   }
 
