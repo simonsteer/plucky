@@ -4,7 +4,6 @@ const LOOP_INTERVAL = 1000 / 60
 const INTERVAL_TOLERANCE = 0.1
 
 export default class Loop {
-  previous: number | undefined
   game: Game
   private effects: (() => boolean)[] = []
 
@@ -35,14 +34,7 @@ export default class Loop {
     if (!this.didStart) this.didStart = true
     const scene = this.game.currentScene
 
-    if (!scene) {
-      this.previous = undefined
-      return
-    }
-
-    if (this.previous === undefined) {
-      this.previous = timestamp
-    }
+    if (!scene) return
 
     this.effects = this.effects.filter(effect => effect())
     scene.map(entity => entity.render())
