@@ -6,9 +6,13 @@ export default class QuadTree<T extends any> {
   outliers: QuadTreeChild<T>[] = []
   nodes: QuadTree<T>[] = []
   root: Bounds
+  maxDepth: number
+  maxChildren: number
 
-  constructor(root: Bounds) {
+  constructor(root: Bounds, maxDepth = 4, maxChildren = 4) {
     this.root = root
+    this.maxDepth = maxDepth
+    this.maxChildren = maxChildren
   }
 
   clear() {
@@ -26,7 +30,9 @@ export default class QuadTree<T extends any> {
         return acc
       }, [] as QuadTreeChild<T>[])
     }
-    return [...this.children, ...this.outliers].filter(child => getDoBoundsOverlap(child, query))
+    return [...this.children, ...this.outliers].filter(
+      child => getDoBoundsOverlap(child, query)
+    )
   }
 
   insert(child: QuadTreeChild<T>) {
@@ -36,6 +42,7 @@ export default class QuadTree<T extends any> {
       if (nodes.length) {
         if (nodes.length > 1) {
           this.outliers.push(child)
+          return
         }
         nodes[0].insert(child)
       }
@@ -66,18 +73,18 @@ export default class QuadTree<T extends any> {
         ...quadDimensions
       }),
       new QuadTree<T>({
-        x: this.root.x + (this.root.width / 2),
+        x: this.root.x + quadDimensions.width,
         y: this.root.y,
         ...quadDimensions
       }),
       new QuadTree<T>({
-        x: this.root.x + (this.root.width / 2),
-        y: this.root.y + (this.root.height / 2),
+        x: this.root.x + quadDimensions.width,
+        y: this.root.y + quadDimensions.height,
         ...quadDimensions
       }),
       new QuadTree<T>({
         x: this.root.x,
-        y: this.root.y + (this.root.height / 2),
+        y: this.root.y + quadDimensions.height,
         ...quadDimensions
       }),
     ]

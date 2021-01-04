@@ -53,64 +53,62 @@ scene.add(new Entity(game, {
 }))
 
 const createball = () => {
+  const size = Math.max(7, Math.floor(Math.random() * 21))
+
   const ball = new Entity(game, {
     metadata: {
       bounds: {
-        x: Math.max(0, Math.floor(Math.random() * (scene.width - 10))),
-        y: Math.max(0, Math.floor(Math.random() * (scene.height - 10))),
-        width: 10,
-        height: 10
+        x: Math.max(0, Math.floor(Math.random() * (scene.width - size))),
+        y: Math.max(0, Math.floor(Math.random() * (scene.height - size))),
+        width: size,
+        height: size
       },
       movement: {
         horizontal: Math.random() >= 0.5 ? 'right' : 'left',
         vertical: Math.random() >= 0.5 ? 'top' : 'bottom',
+        speed: Math.max(0.2, Math.floor(Math.random() * 0.7)),
       },
       colliding: false,
     },
     update() {
+      const { speed } = ball.metadata.movement
+
       if (ball.metadata.vertical === 'bottom') {
-        if (ball.metadata.bounds.y + ball.metadata.bounds.height < scene.height) {
-          ball.metadata.bounds.y++
+        if (ball.metadata.bounds.y + ball.metadata.bounds.height + speed <= scene.height) {
+          ball.metadata.bounds.y += speed
         } else {
+          ball.metadata.bounds.y = scene.height - ball.metadata.bounds.height
           ball.metadata.vertical = 'top'
-          if (ball.metadata.bounds.y > 0) {
-            ball.metadata.bounds.y--
-          }
         }
       } else {
-        if (ball.metadata.bounds.y > 0) {
-          ball.metadata.bounds.y--
+        if (ball.metadata.bounds.y >= speed) {
+          ball.metadata.bounds.y -= speed
         } else {
+          ball.metadata.bounds.y = 0
           ball.metadata.vertical = 'bottom'
-          if (ball.metadata.bounds.y + ball.metadata.bounds.height < scene.height) {
-            ball.metadata.bounds.y++
-          }
         }
       }
       if (ball.metadata.horizontal === 'right') {
-        if (ball.metadata.bounds.x + ball.metadata.bounds.width < scene.width) {
-          ball.metadata.bounds.x++
+        if (ball.metadata.bounds.x + ball.metadata.bounds.width + speed <= scene.width) {
+          ball.metadata.bounds.x += speed
         } else {
+          ball.metadata.bounds.x = scene.width - ball.metadata.bounds.width
           ball.metadata.horizontal = 'left'
-          if (ball.metadata.bounds.x > 0) {
-            ball.metadata.bounds.x--
-          }
         }
       } else {
-        if (ball.metadata.bounds.x > 0) {
-          ball.metadata.bounds.x--
+        if (ball.metadata.bounds.x >= speed) {
+          ball.metadata.bounds.x -= speed
         } else {
+          ball.metadata.bounds.x = 0
           ball.metadata.horizontal = 'right'
-          if (ball.metadata.bounds.x + ball.metadata.bounds.width < scene.width) {
-            ball.metadata.bounds.x++
-          }
         }
       }
     },
     render() {
       const { x, y, width } = ball.metadata.bounds
+      const radius = width / 2
       game.context.beginPath()
-      game.context.arc(x, y, width / 2, 0, 2 * Math.PI)
+      game.context.arc(x + radius, y + radius, radius, 0, 2 * Math.PI)
       game.context.fillStyle = ball.metadata.colliding ? 'rgba(255,100,100,0.4)' : 'rgba(19,118,194,1)'
       game.context.fill()
     },
@@ -118,7 +116,7 @@ const createball = () => {
   return ball
 }
 
-const balls = Array(30).fill(undefined).map(createball)
+const balls = Array(100).fill(undefined).map(createball)
 balls.forEach(ball => scene.add(ball))
 
 game.loadScene(scene)
@@ -143,13 +141,17 @@ const useQuadTreeCollisionDetection = () => {
       if (child.metadata.id === ball.id) {
         return
       }
+
+      const radius = ball.metadata.bounds.width / 2
+
       const colliding = getDoCirclesOverlap({
-        x: ball.metadata.bounds.x,
-        y: ball.metadata.bounds.y, radius: ball.metadata.bounds.width / 2
+        x: ball.metadata.bounds.x + radius,
+        y: ball.metadata.bounds.y + radius,
+        radius
       }, {
-        x: child.metadata.metadata.bounds.x,
-        y: child.metadata.metadata.bounds.y,
-        radius: child.metadata.metadata.bounds.width / 2
+        x: child.metadata.metadata.bounds.x + radius,
+        y: child.metadata.metadata.bounds.y + radius,
+        radius
       })
       ball.metadata.colliding = ball.metadata.colliding || colliding
       child.metadata.metadata.colliding = child.metadata.metadata.colliding || colliding
