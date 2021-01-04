@@ -11,7 +11,7 @@ export default class Scene {
   height: number
   constructor(
     game: Game,
-    { width, height }: { width: number; height: number }
+    { width, height } = game.viewportDimensions
   ) {
     this.game = game
     this.width = width

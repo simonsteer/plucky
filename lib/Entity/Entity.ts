@@ -10,13 +10,15 @@ export default class Entity {
 
   constructor(
     game: Game,
-    { metadata = {}, renderLayer = 0, render } = {} as EntityConfig
+    { metadata = {}, renderLayer = 0, render, update } = {} as EntityConfig
   ) {
     this.game = game
     this.metadata = metadata
     this.renderLayer = renderLayer
     if (render) this.render = render
+    if (update) this.update = update
   }
 
   render() { }
+  update() { }
 }

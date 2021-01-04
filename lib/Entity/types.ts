@@ -4,4 +4,5 @@ export interface EntityConfig {
   metadata?: any
   renderLayer?: number
   render?: () => void
+  update?: () => void
 }

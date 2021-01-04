@@ -36,6 +36,7 @@ export default class Loop {
 
     if (!scene) return
 
+    scene.map(entity => entity.update())
     this.effects = this.effects.filter(effect => effect())
     scene.map(entity => entity.render())
   }
