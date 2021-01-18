@@ -41,7 +41,6 @@ export default class Loop {
     scene.map(entity => entity.render())
   }
 
-
   /**
    *
    * @param callback
@@ -49,7 +48,7 @@ export default class Loop {
    * This callback should return a boolean, which indicates whether to keep being called or to stop its
    * execution the next time the loop runs (see `Loop.tween` for implementation example).
    */
-  doUntil(callback: (timeElapsed: number) => boolean) {
+  doWhile(callback: (timeElapsed: number) => boolean) {
     return new Promise<number>((resolve) => {
       let startTime: number
       const callbackWithTimeElapsed = () => {
@@ -66,15 +65,15 @@ export default class Loop {
   }
 
   doFor(duration: number, callback: (timePassed: number) => (void)) {
-    return this.doUntil((timeElapsed) => {
+    return this.doWhile((timeElapsed) => {
       callback(timeElapsed)
       if (timeElapsed >= duration) return false
       return true
     })
   }
 
-  doForUntil(duration: number, callback: (timePassed: number) => (void | boolean)) {
-    return this.doUntil((timeElapsed) => {
+  doForWhile(duration: number, callback: (timePassed: number) => (void | boolean)) {
+    return this.doWhile((timeElapsed) => {
       const result = callback(timeElapsed)
       if (timeElapsed >= duration || result === false) return false
       return true
@@ -142,6 +141,6 @@ export default class Loop {
       return true
     }
 
-    await this.doForUntil(duration, tweenValues)
+    await this.doForWhile(duration, tweenValues)
   }
 }

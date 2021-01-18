@@ -1,16 +1,21 @@
-import { v4 as uuid } from 'uuid'
-import { Game } from '../Game'
-import { EntityConfig } from './types'
+import { v4 as uuid } from "uuid"
+import { Game } from "../Game"
+import { EntityConfig } from "./types"
 
-export default class Entity {
+export default class Entity<Metadata extends {} = {}> {
   id = uuid()
-  metadata: any
+  metadata: Metadata
   game: Game
   renderLayer: number
 
   constructor(
     game: Game,
-    { metadata = {}, renderLayer = 0, render, update } = {} as EntityConfig
+    {
+      metadata = {} as Metadata,
+      renderLayer = 0,
+      render,
+      update
+    } = {} as EntityConfig<Metadata>
   ) {
     this.game = game
     this.metadata = metadata
@@ -19,6 +24,6 @@ export default class Entity {
     if (update) this.update = update
   }
 
-  render() { }
-  update() { }
+  render() {}
+  update() {}
 }

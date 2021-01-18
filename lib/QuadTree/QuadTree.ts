@@ -3,92 +3,120 @@ import { getDoBoundsOverlap } from './utils'
 
 export default class QuadTree<T extends any> {
   children: QuadTreeChild<T>[] = []
-  outliers: QuadTreeChild<T>[] = []
+  outliers: Set<QuadTreeChild<T>>
   nodes: QuadTree<T>[] = []
-  root: Bounds
+  bounds: Bounds
+  depth: number
   maxDepth: number
   maxChildren: number
+  parent: null | QuadTree<T>
 
-  constructor(root: Bounds, maxDepth = 4, maxChildren = 4) {
-    this.root = root
+  constructor(root: Bounds, {
+    maxDepth = 4,
+    maxChildren = 4,
+    depth = 1,
+    parent = null as null | QuadTree<T>
+  } = {}) {
+    this.parent = parent
+    if (this.parent === null) {
+      this.outliers = new Set<QuadTreeChild<T>>()
+    }
+    this.bounds = root
+    this.depth = depth
     this.maxDepth = maxDepth
     this.maxChildren = maxChildren
   }
 
+  get root(): QuadTree<T> {
+    return this.parent ? this.parent.root || this.parent : this
+  }
+
   clear() {
     this.children = []
-    this.outliers = []
+    this.root.outliers.clear()
     this.nodes = []
   }
 
-  retrieve(query = this.root): QuadTreeChild<T>[] {
+  retrieve(query = this.bounds): QuadTreeChild<T>[] {
     if (this.nodes.length) {
-      return this.nodes.reduce((acc, node) => {
-        if (getDoBoundsOverlap(node.root, query)) {
-          acc.push(...node.retrieve(query))
+      return [...this.nodes.reduce((acc, node) => {
+        if (getDoBoundsOverlap(node.bounds, query)) {
+          node.retrieve(query).forEach(item => acc.add(item))
         }
         return acc
-      }, [] as QuadTreeChild<T>[])
+      }, new Set<QuadTreeChild<T>>())]
     }
-    return [...this.children, ...this.outliers].filter(
-      child => getDoBoundsOverlap(child, query)
-    )
+    return this.children.filter(child => getDoBoundsOverlap(child, query))
   }
 
-  insert(child: QuadTreeChild<T>) {
+  insert(...children: QuadTreeChild<T>[]) {
+    children.forEach(this.insertChild)
+  }
+
+  private subdivide() {
+    const quadDimensions = {
+      width: this.bounds.width / 2,
+      height: this.bounds.height / 2
+    }
+
+    const options = {
+      depth: this.depth + 1,
+      maxDepth: this.maxDepth,
+      maxChildren: this.maxChildren,
+      parent: this
+    }
+
+    this.nodes = [
+      new QuadTree<T>({
+        x: this.bounds.x,
+        y: this.bounds.y,
+        ...quadDimensions
+      }, options),
+      new QuadTree<T>({
+        x: this.bounds.x + quadDimensions.width,
+        y: this.bounds.y,
+        ...quadDimensions
+      }, options),
+      new QuadTree<T>({
+        x: this.bounds.x + quadDimensions.width,
+        y: this.bounds.y + quadDimensions.height,
+        ...quadDimensions
+      }, options),
+      new QuadTree<T>({
+        x: this.bounds.x,
+        y: this.bounds.y + quadDimensions.height,
+        ...quadDimensions
+      }, options),
+    ]
+    this.children.forEach(child => this.insert(child))
+    this.children = []
+  }
+
+  private insertChild = (child: QuadTreeChild<T>) => {
     // QuadTree has been subdivided
     if (this.nodes.length) {
-      const nodes = this.nodes.filter(node => getDoBoundsOverlap(node.root, child))
-      if (nodes.length) {
-        if (nodes.length > 1) {
-          this.outliers.push(child)
-          return
+      this.nodes.forEach(node => {
+        if (getDoBoundsOverlap(node.bounds, child)) {
+          node.insert(child)
         }
-        nodes[0].insert(child)
-      }
+      })
       return
     }
 
-    // QuadTree needs to be subdivided prior to insertion
-    if (this.children.length === 4) {
-      this.subdivide()
-      this.insert(child)
+    // QuadTree contains max children
+    if (this.children.length === this.maxChildren) {
+      // Max depth has not been reached
+      if (this.depth !== this.maxDepth) {
+        this.subdivide()
+        this.insert(child)
+      } else {
+        // max depth reached
+        this.root.outliers.add(child)
+      }
       return
     }
 
     // QuadTree does not need subdividing, nor has been subdivided
     this.children.push(child)
-  }
-
-  subdivide() {
-    const quadDimensions = {
-      width: this.root.width / 2,
-      height: this.root.height / 2
-    }
-
-    this.nodes = [
-      new QuadTree<T>({
-        x: this.root.x,
-        y: this.root.y,
-        ...quadDimensions
-      }),
-      new QuadTree<T>({
-        x: this.root.x + quadDimensions.width,
-        y: this.root.y,
-        ...quadDimensions
-      }),
-      new QuadTree<T>({
-        x: this.root.x + quadDimensions.width,
-        y: this.root.y + quadDimensions.height,
-        ...quadDimensions
-      }),
-      new QuadTree<T>({
-        x: this.root.x,
-        y: this.root.y + quadDimensions.height,
-        ...quadDimensions
-      }),
-    ]
-    this.children.forEach(child => this.insert(child))
-    this.children = []
   }
 }

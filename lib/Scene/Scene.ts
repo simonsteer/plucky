@@ -22,23 +22,31 @@ export default class Scene {
     this.game.loadScene(this)
   }
 
-  add(entity: Entity) {
-    this.entities.push(entity)
+  add(...entities: Entity[]) {
+    entities.forEach(entity => this.entities.push(entity))
     this.entities.sort((a, b) => a.renderLayer - b.renderLayer)
     return this
   }
 
-  remove(entity: Entity) {
-    this.entities = this.entities.filter(e => e !== entity)
+  remove(...entities: Entity[]) {
+    const ids = entities.reduce((acc, entity) => {
+      acc[entity.id] = true
+      return acc
+    }, {} as { [key: string]: true })
+
+    this.entities = this.entities.filter(e => !(e.id in ids))
     return this
   }
 
-  map = <R extends any = Entity>(callback = (entity: Entity) => entity as R) =>
+  map = <R extends any = Entity>(callback = (entity: Entity, index: number) => entity as R) =>
     this.entities.map(callback)
 
-  filter = (callback: (entity: Entity) => boolean) =>
+  filter = (callback: (entity: Entity, index: number) => boolean) =>
     this.entities.filter(callback)
 
-  find = <R extends boolean>(callback: (entity: Entity) => R) =>
+  forEach = (callback: (entity: Entity, index: number) => void) =>
+    this.entities.forEach(callback)
+
+  find = (callback: (entity: Entity, index: number) => boolean) =>
     this.entities.find(callback)
 }

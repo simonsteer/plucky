@@ -1,43 +1,54 @@
-import { EventEmitter } from 'events'
-import { Scene } from '../Scene'
-import { Loop } from '../Loop'
+import { EventEmitter } from "events"
+import { Scene } from "../Scene"
+import { Loop } from "../Loop"
+import { JSONCoords } from "../XYCoords"
 
-export default class Game extends EventEmitter {
-  static Events = {
-    UnitDeployed: Symbol(),
-    DeploymentWithdrawn: Symbol(),
-    DeploymentMovement: Symbol(),
-    BattleStart: Symbol(),
-    BattleTurnStart: Symbol(),
-    BattleTurnEnd: Symbol(),
-    BattleEnd: Symbol(),
-    SceneClicked: Symbol(),
-    SceneMouseMove: Symbol(),
-  }
-
+type GameEvents = {
+  sceneMounted: (scene: Scene) => void
+  sceneUnmounted: (scene: Scene) => void
+  sceneClicked: (scene: Scene, { x, y }: JSONCoords) => void
+  sceneMouseMove: (scene: Scene, { x, y }: JSONCoords) => void
+}
+type GameEvent<K extends keyof GameEvents> = (
+  ...args: Parameters<GameEvents[K]>
+) => void
+export default class Game {
   canvas: HTMLCanvasElement
   context: CanvasRenderingContext2D
-
   viewportDimensions: { width: number; height: number }
+
+  private events = new EventEmitter()
+  private emit<K extends keyof GameEvents>(
+    event: K,
+    ...args: Parameters<GameEvent<K>>
+  ) {
+    this.events.emit(event, ...args)
+  }
+  on<K extends keyof GameEvents>(event: K, callback: GameEvent<K>) {
+    this.events.on(event, callback)
+  }
+  off<K extends keyof GameEvents>(event: K, callback: GameEvent<K>) {
+    this.events.off(event, callback)
+  }
 
   constructor({
     canvasId,
     viewportHeight = 192,
-    viewportWidth = 320,
+    viewportWidth = 320
   }: {
     canvasId: string
     viewportWidth?: number
     viewportHeight?: number
   }) {
-    super()
     const canvas = document.getElementById(canvasId) as HTMLCanvasElement | null
-    if (!canvas)
+    if (!canvas) {
       throw new Error(
         `No HTMLCanvasElement was found with the id "${canvasId}"`
       )
+    }
     this.viewportDimensions = {
       height: viewportHeight,
-      width: viewportWidth,
+      width: viewportWidth
     }
     canvas.height = this.viewportDimensions.height
     canvas.width = this.viewportDimensions.width
@@ -50,7 +61,12 @@ export default class Game extends EventEmitter {
   currentScene?: Scene
 
   loadScene = (scene: Scene) => {
+    if (this.currentScene) {
+      this.emit("sceneUnmounted", this.currentScene)
+    }
     this.currentScene = scene
+    this.emit("sceneMounted", this.currentScene)
+
     if (!this.loop.didStart) {
       this.loop.start()
     }
@@ -58,28 +74,32 @@ export default class Game extends EventEmitter {
 
   private handleClick = (e: MouseEvent) => {
     if (this.currentScene) {
-      const coordinates = { x: e.offsetX, y: e.offsetY }
-      this.emit(Game.Events.SceneClicked, this.currentScene, coordinates)
+      this.emit("sceneClicked", this.currentScene, {
+        x: e.offsetX,
+        y: e.offsetY
+      })
     }
   }
 
   private handleMouseMove = (e: MouseEvent) => {
     if (this.currentScene) {
-      const coordinates = { x: e.offsetX, y: e.offsetY }
-      this.emit(Game.Events.SceneMouseMove, this.currentScene, coordinates)
+      this.emit("sceneMouseMove", this.currentScene, {
+        x: e.offsetX,
+        y: e.offsetY
+      })
     }
   }
 
   private init(canvas: HTMLCanvasElement) {
-    const context = canvas.getContext('2d')
+    const context = canvas.getContext("2d")
     if (!context)
       throw new Error(
-        'Unable to get 2d rendering context for HTMLCanvasElement'
+        "Unable to get 2d rendering context for HTMLCanvasElement"
       )
 
     this.canvas = canvas
     this.context = context
-    this.canvas.addEventListener('click', this.handleClick)
-    this.canvas.addEventListener('mousemove', this.handleMouseMove)
+    this.canvas.addEventListener("click", this.handleClick)
+    this.canvas.addEventListener("mousemove", this.handleMouseMove)
   }
 }
