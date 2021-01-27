@@ -1,5 +1,9 @@
 type Func = (...args: any) => any
 
+export function minMax(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
 export function memoize<F extends Func>(
   fn: F,
   hashingMethod: (...args: Parameters<F>) => string,
@@ -28,6 +32,6 @@ export function memoize<F extends Func>(
 
       relevancy.unshift(hash)
       return data
-    },
+    }
   })
 }

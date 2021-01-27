@@ -1,5 +1,3 @@
-import { JSONCoords } from "../XYCoords"
-
 export interface EntityConfig<Metadata extends {}> {
   metadata?: Metadata
   renderLayer?: number

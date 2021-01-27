@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "parcel ./src/index.html",
     "platformer": "parcel ./examples/platformer/index.html",
+    "particles": "parcel ./examples/particles/index.html",
     "pokemon": "parcel ./examples/pokemon/index.html"
   },
   "author": "",

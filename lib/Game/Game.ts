@@ -1,7 +1,7 @@
 import { EventEmitter } from "events"
 import { Scene } from "../Scene"
 import { Loop } from "../Loop"
-import { JSONCoords } from "../XYCoords"
+import { JSONCoords } from "../Point"
 
 type GameEvents = {
   sceneMounted: (scene: Scene) => void

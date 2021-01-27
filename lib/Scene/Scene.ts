@@ -1,18 +1,17 @@
-import { Entity } from '../Entity'
-import { Game } from '../Game'
-import { v4 as uuid } from 'uuid'
+import { Entity } from "../Entity"
+import { Game } from "../Game"
+import { v4 as uuid } from "uuid"
+import { JSONCoords } from "../Point"
 
 export default class Scene {
   id = uuid()
   entities: Entity[] = []
   game: Game
-
+  cameraOrigin: JSONCoords
   width: number
   height: number
-  constructor(
-    game: Game,
-    { width, height } = game.viewportDimensions
-  ) {
+
+  constructor(game: Game, { width, height } = game.viewportDimensions) {
     this.game = game
     this.width = width
     this.height = height
@@ -23,8 +22,7 @@ export default class Scene {
   }
 
   add(...entities: Entity[]) {
-    entities.forEach(entity => this.entities.push(entity))
-    this.entities.sort((a, b) => a.renderLayer - b.renderLayer)
+    this.entities.push(...entities)
     return this
   }
 
@@ -38,8 +36,9 @@ export default class Scene {
     return this
   }
 
-  map = <R extends any = Entity>(callback = (entity: Entity, index: number) => entity as R) =>
-    this.entities.map(callback)
+  map = <R extends any = Entity>(
+    callback = (entity: Entity, index: number) => entity as R
+  ) => this.entities.map(callback)
 
   filter = (callback: (entity: Entity, index: number) => boolean) =>
     this.entities.filter(callback)

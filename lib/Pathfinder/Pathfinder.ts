@@ -1,8 +1,8 @@
-import { XYCoords, JSONCoords } from '../XYCoords'
-import Queue from './PriorityQueue'
-import removeDeepFromMap from './removeDeepFromMap'
-import toDeepMap from './toDeepMap'
-import { PathfinderMap, PathfinderObject } from './types'
+import { Point, JSONCoords } from "../Point"
+import Queue from "./PriorityQueue"
+import removeDeepFromMap from "./removeDeepFromMap"
+import toDeepMap from "./toDeepMap"
+import { PathfinderMap, PathfinderObject } from "./types"
 
 /** Creates and manages a graph */
 export default class Pathfinder {
@@ -39,8 +39,8 @@ export default class Pathfinder {
       return { path: null, cost: 0 }
     }
 
-    const from = XYCoords.hash(start)
-    const to = XYCoords.hash(goal)
+    const from = Point.hash(start)
+    const to = Point.hash(goal)
 
     const explored = new Set<string>()
     const frontier = new Queue()
@@ -65,7 +65,7 @@ export default class Pathfinder {
 
         let nodeKey = node.key
         while (previous.has(nodeKey)) {
-          path.push(XYCoords.parse(nodeKey))
+          path.push(Point.parse(nodeKey))
           nodeKey = previous.get(nodeKey)!
         }
 

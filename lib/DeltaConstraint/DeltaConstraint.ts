@@ -1,5 +1,5 @@
-import { memoize } from '../utils'
-import { XYCoords, JSONCoords } from '../XYCoords'
+import { memoize } from "../utils"
+import { Point, JSONCoords } from "../Point"
 
 export default class DeltaConstraint {
   timestamp = 0
@@ -21,7 +21,7 @@ export default class DeltaConstraint {
       | ((currentDeltas: JSONCoords[]) => JSONCoords[])
   ) {
     const newDeltas =
-      typeof incomingDeltas === 'function'
+      typeof incomingDeltas === "function"
         ? incomingDeltas(this.deltas)
         : incomingDeltas
 
@@ -39,7 +39,7 @@ export default class DeltaConstraint {
 
       return {
         width: Math.max(...xValues) - Math.min(...xValues) + 1,
-        height: Math.max(...yValues) - Math.min(...yValues) + 1,
+        height: Math.max(...yValues) - Math.min(...yValues) + 1
       }
     },
     () => `${this.timestamp}`
@@ -47,18 +47,16 @@ export default class DeltaConstraint {
 
   adjacent = memoize(
     (coords: JSONCoords) =>
-      this.deltas.map(
-        d => new XYCoords({ x: coords.x + d.x, y: coords.y + d.y })
-      ),
-    coords => [XYCoords.hash(coords), this.timestamp].join()
+      this.deltas.map(d => new Point({ x: coords.x + d.x, y: coords.y + d.y })),
+    coords => [Point.hash(coords), this.timestamp].join()
   )
 
   applies = memoize(
-    (coords_a: JSONCoords, coords_b: JSONCoords) => {
-      const { x, y } = XYCoords.deltas(coords_a, coords_b)
+    (coordsA: JSONCoords, coordsB: JSONCoords) => {
+      const { x, y } = Point.subtract(coordsA, coordsB)
       return !!this.lookupMap[x]?.[y]
     },
-    (a, b) => [XYCoords.hash(a), XYCoords.hash(b), this.timestamp].join()
+    (a, b) => [Point.hash(a), Point.hash(b), this.timestamp].join()
   )
 
   private init(deltas: JSONCoords[]) {

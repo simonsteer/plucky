@@ -1,23 +1,25 @@
-import { Game } from '../Game'
-import { SpriteSheetConfig } from './types'
+import { Game } from "../Game"
+import { SpriteSheetConfig } from "./types"
 
-export default class SpriteSheet {
+export default class SpriteSheet<
+  States extends { [stateName: string]: number[] } = {}
+> {
   image: HTMLImageElement
   numFrames: number
   frameWidth: number
   frameHeight: number
   loaded: boolean
   src: string
-  states: SpriteSheetConfig['states']
+  states: States & { default: number[] }
   onloadHandlers: (() => void)[] = []
 
   constructor({
     src,
     numFrames = 1,
     onload = () => {},
-    states,
-  }: SpriteSheetConfig) {
-    this.states = states
+    states = {} as States
+  }: SpriteSheetConfig<States>) {
+    this.states = { default: [0], ...states }
     this.image = new Image()
     this.numFrames = numFrames
     this.src = src
@@ -34,25 +36,27 @@ export default class SpriteSheet {
   onload = (callback: () => void) => this.onloadHandlers.push(callback)
 
   private frameIndices: { [id: string]: number } = {}
-  private currentState: undefined | string
+  private currentState: undefined | keyof States
   render = ({
     game,
     x,
     y,
     instanceId,
-    state = 'default',
-    rotate,
+    state = "default",
+    rotate
   }: {
     game: Game
     x: number
     y: number
     instanceId: string
-    state?: string
+    state?: keyof States
     rotate?: number
   }) => {
     if (!this.loaded) return
-    if (!this.currentState) this.currentState = state
-    if (state !== this.currentState) this.frameIndices[instanceId] = 0
+    if (state !== this.currentState) {
+      this.currentState = state
+      this.frameIndices[instanceId] = 0
+    }
 
     const frames = this.states[state]
     const spriteXOffset =
@@ -85,5 +89,15 @@ export default class SpriteSheet {
     )
 
     game.context.resetTransform()
+  }
+
+  static stretchFrames = (frames: number[], factor: number) => {
+    const stretchedFrames: number[] = []
+    frames.forEach(frame => {
+      for (let i = 0; i < factor; i++) {
+        stretchedFrames.push(frame)
+      }
+    })
+    return stretchedFrames
   }
 }

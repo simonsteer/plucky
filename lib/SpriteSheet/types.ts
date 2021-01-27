@@ -1,11 +1,10 @@
-import { SpriteSheet } from '.'
+import { SpriteSheet } from "."
 
-export type SpriteSheetConfig = {
+export type SpriteSheetConfig<
+  States extends { [stateName: string]: number[] }
+> = {
   src: string
   onload?: () => void
   numFrames?: number
-  states: {
-    default: number[]
-    [key: string]: number[]
-  }
+  states?: States
 }

@@ -1,7 +1,7 @@
-import { XYCoords } from '../XYCoords'
+import { Point } from "../Point"
 
 export const getGridCoordinatesFromXY = (
   x: number,
   y: number,
   cellSize: number
-) => new XYCoords({ x: Math.floor(x / cellSize), y: Math.floor(y / cellSize) })
+) => new Point({ x: Math.floor(x / cellSize), y: Math.floor(y / cellSize) })

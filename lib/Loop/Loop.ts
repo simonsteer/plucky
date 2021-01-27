@@ -1,4 +1,5 @@
-import { Game } from '../Game'
+import { Entity } from "../Entity"
+import { Game } from "../Game"
 
 const LOOP_INTERVAL = 1000 / 60
 const INTERVAL_TOLERANCE = 0.1
@@ -27,6 +28,7 @@ export default class Loop {
       }
     }
 
+    this.didStart = true
     this.id = requestAnimationFrame(animateLoop)
   }
 
@@ -36,9 +38,14 @@ export default class Loop {
 
     if (!scene) return
 
-    scene.map(entity => entity.update())
+    const entities: Entity[] = []
+    scene.entities.forEach(entity =>
+      entities.splice(entity.renderLayer, 0, entity)
+    )
+
+    entities.map(entity => entity.update())
     this.effects = this.effects.filter(effect => effect())
-    scene.map(entity => entity.render())
+    entities.map(entity => entity.render())
   }
 
   /**
@@ -49,7 +56,7 @@ export default class Loop {
    * execution the next time the loop runs (see `Loop.tween` for implementation example).
    */
   doWhile(callback: (timeElapsed: number) => boolean) {
-    return new Promise<number>((resolve) => {
+    return new Promise<number>(resolve => {
       let startTime: number
       const callbackWithTimeElapsed = () => {
         if (startTime === undefined) {
@@ -64,16 +71,19 @@ export default class Loop {
     })
   }
 
-  doFor(duration: number, callback: (timePassed: number) => (void)) {
-    return this.doWhile((timeElapsed) => {
+  doFor(duration: number, callback: (timePassed: number) => void) {
+    return this.doWhile(timeElapsed => {
       callback(timeElapsed)
       if (timeElapsed >= duration) return false
       return true
     })
   }
 
-  doForWhile(duration: number, callback: (timePassed: number) => (void | boolean)) {
-    return this.doWhile((timeElapsed) => {
+  doForWhile(
+    duration: number,
+    callback: (timePassed: number) => void | boolean
+  ) {
+    return this.doWhile(timeElapsed => {
       const result = callback(timeElapsed)
       if (timeElapsed >= duration || result === false) return false
       return true
@@ -88,7 +98,7 @@ export default class Loop {
       outputs,
       duration = 300,
       easing = n => n,
-      id,
+      id
     }: {
       inputs: number[]
       outputs: number[]
@@ -122,7 +132,7 @@ export default class Loop {
       )
       const valueChangeResult = onValuesChanged(nextValues, progress)
 
-      if (typeof valueChangeResult === 'boolean') {
+      if (typeof valueChangeResult === "boolean") {
         // if onValuesChanged returned false, we are bailing out of the tween,
         // and exiting loop, so we delete the id from the activeTweens object to
         // prevent it from growing indefinitely
