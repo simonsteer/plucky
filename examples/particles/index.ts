@@ -1,13 +1,4 @@
-import {
-  Game,
-  Scene,
-  Entity,
-  ParticleSystem,
-  Easing,
-  Point,
-  minMax,
-  Particle
-} from "../../lib"
+import { Game, Scene, ParticleSystem, minMax, Particle } from "../../lib"
 
 const game = new Game({
   canvasId: "app",
@@ -29,17 +20,21 @@ game.on("sceneUnmounted", () => {
 })
 
 const ps = new ParticleSystem(game, {
-  interval: 0,
+  spawnInterval: 10,
   spawn() {
     const particle = new Particle({
-      lifespan: 1000,
+      lifespan: 5000,
+      weight: 5,
       mass: minMax(Math.random() * 8, 3, 8),
       acceleration: { x: 0, y: 0 },
       velocity: {
-        x: (-Math.random() + Math.random()) * 2,
-        y: Math.random() * -2
+        x: -Math.random() + Math.random(),
+        y: -Math.random() + Math.random()
       },
-      position: mousePosition,
+      position: {
+        x: Math.floor(game.viewportDimensions.width / 2),
+        y: Math.floor(game.viewportDimensions.height / 2)
+      },
       render() {
         game.context.beginPath()
         game.context.arc(
@@ -49,22 +44,13 @@ const ps = new ParticleSystem(game, {
           0,
           2 * Math.PI
         )
-        const colorValue =
-          (Point.magnitude(particle.position) /
-            Point.magnitude({
-              x: game.viewportDimensions.width,
-              y: game.viewportDimensions.width
-            })) *
-          255
-
-        game.context.fillStyle = `rgba(145,35,100,${particle.life})`
+        game.context.fillStyle = `rgba(145,35,200,${particle.life})`
         game.context.fill()
       }
     })
 
     return particle
-  },
-  max: 200
+  }
 })
 
 game.loop.doWhile(() => {
@@ -75,9 +61,22 @@ game.loop.doWhile(() => {
     game.viewportDimensions.width,
     game.viewportDimensions.height
   )
-  ps.applyGravity({ x: 0, y: 0.001 })
-  ps.update()
-  ps.render()
+  ps.applyAttractor(
+    {
+      x: Math.floor(game.viewportDimensions.width / 2),
+      y: Math.floor(game.viewportDimensions.height / 2) + 200
+    },
+    10
+  )
+  ps.applyAttractor(
+    {
+      x: Math.floor(game.viewportDimensions.width / 2),
+      y: Math.floor(game.viewportDimensions.height / 2) - 200
+    },
+    10
+  )
+  ps.run()
+
   return true
 })
 

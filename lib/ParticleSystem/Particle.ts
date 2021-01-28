@@ -4,6 +4,7 @@ export default class Particle {
   lifespan: number
   timestamp: number
   mass: number
+  weight: number
   velocity: Point
   acceleration: Point
   position: Point
@@ -15,6 +16,7 @@ export default class Particle {
     velocity,
     acceleration,
     mass,
+    weight,
     render
   }: {
     lifespan: number
@@ -22,19 +24,21 @@ export default class Particle {
     velocity: JSONCoords
     acceleration: JSONCoords
     mass: number
+    weight: number
     render: () => void
   }) {
     this.render = render
     this.lifespan = lifespan
     this.mass = mass
+    this.weight = weight
     this.position = new Point(position)
     this.velocity = new Point(velocity)
     this.acceleration = new Point(acceleration)
     this.timestamp = performance.now()
   }
 
-  kill() {
-    this.timestamp -= this.lifespan
+  get density() {
+    return this.mass / this.weight
   }
 
   get life() {
@@ -62,6 +66,6 @@ export default class Particle {
   applyForce(force: JSONCoords) {
     const forceVector = new Point(force)
     forceVector.divide(this.mass)
-    this.acceleration.add(force)
+    this.acceleration.add(forceVector)
   }
 }

@@ -4,28 +4,25 @@ import { JSONCoords, Point } from "../Point"
 import Particle from "./Particle"
 
 export default class ParticleSystem {
-  interval: number
+  spawnInterval: number
+  viscosity: number
   game: Game
   spawn: () => Particle
   particles: Particle[] = []
-  max: number
-  min: number
   paused = false
 
   constructor(
     game: Game,
     {
       spawn,
-      max,
-      min = 0,
-      interval = 0
-    }: { spawn: () => Particle; max: number; min?: number; interval?: number }
+      spawnInterval = 0,
+      viscosity = 0.9
+    }: { spawn: () => Particle; spawnInterval?: number; viscosity?: number }
   ) {
     this.game = game
     this.spawn = spawn
-    this.interval = interval
-    this.max = max
-    this.min = min
+    this.spawnInterval = spawnInterval
+    this.viscosity = viscosity
   }
 
   mapParticles<R extends any>(
@@ -41,12 +38,12 @@ export default class ParticleSystem {
   // TODO: what might this look like if the attractor had shape/size?
   applyAttractor(attractor: JSONCoords, power: number) {
     this.mapParticles(particle => {
-      const direction = new Point(attractor).subtract(particle.position)
-      const distance = minMax(direction.magnitude(), 1, 100)
+      const direction = Point.subtract(attractor, particle.position.raw)
+      const distance = minMax(Point.magnitude(direction), 1, 100)
       const force = power / distance ** 2
 
-      const attractForce = direction.normalize().multiply(force)
-      particle.applyForce(attractForce)
+      const attractionForce = Point.multiply(Point.normalize(direction), force)
+      particle.applyForce(attractionForce)
     })
     return this
   }
@@ -62,6 +59,11 @@ export default class ParticleSystem {
       particle.applyForce(gravityForce)
     })
     return this
+  }
+
+  run() {
+    this.update()
+    this.render()
   }
 
   pause() {
@@ -86,12 +88,9 @@ export default class ParticleSystem {
       }
     }
 
-    if (performance.now() - this.timestamp < this.interval) {
-      return
-    }
-    this.timestamp = performance.now()
-
-    if (this.particles.length < this.max) {
+    const elapsed = performance.now() - this.timestamp
+    if (elapsed >= this.spawnInterval) {
+      this.timestamp = performance.now()
       this.particles.push(this.spawn())
     }
   }
