@@ -1,2 +1,1 @@
-export { default as Entity } from './Entity'
-export * from './types'
+export * from "./types"

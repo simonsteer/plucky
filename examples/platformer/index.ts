@@ -7,8 +7,9 @@ const game = new Game({
 })
 const scene = new Scene(game)
 
-const background = new Entity(game, {
-  renderLayer: 0,
+const background = {
+  id: "bg",
+  origin: { x: 0, y: 0 },
   render() {
     game.context.fillStyle = "black"
     game.context.fillRect(
@@ -18,61 +19,66 @@ const background = new Entity(game, {
       game.viewportDimensions.height
     )
   }
-})
+}
 
-const ground = new Entity(game, {
-  renderLayer: 1,
-  metadata: {
+const ground = {
+  id: "ground",
+  origin: {
     x: 0,
-    y: game.viewportDimensions.height - 30,
-    width: game.viewportDimensions.width,
-    height: 30
+    y: game.viewportDimensions.height - 30
   },
+  width: game.viewportDimensions.width,
+  height: 30,
   render() {
     game.context.fillStyle = "green"
-    const { x, y, width, height } = ground.metadata
+    const {
+      origin: { x, y },
+      width,
+      height
+    } = ground
     game.context.fillRect(x, y, width, height)
   }
-})
+}
 
-const player = new Entity(game, {
-  renderLayer: 2,
-  metadata: {
+const player = {
+  id: "player",
+  origin: {
     x: 10,
-    y: game.viewportDimensions.height - ground.metadata.height - 40,
-    width: 20,
-    height: 40,
-    hSpeed: 0,
-    vSpeed: 0,
-    airborn: false,
-    leftPressed: false,
-    rightPressed: false,
-    upPressed: false,
-    colliding: false
+    y: game.viewportDimensions.height - ground.height - 40
   },
+  width: 20,
+  height: 40,
+  hSpeed: 0,
+  vSpeed: 0,
+  airborn: false,
+  leftPressed: false,
+  rightPressed: false,
+  upPressed: false,
+  colliding: false,
   render() {
     game.context.fillStyle = "purple"
     game.context.fillRect(
-      player.metadata.x,
-      player.metadata.y,
-      player.metadata.width,
-      player.metadata.height
+      player.origin.x,
+      player.origin.y,
+      player.width,
+      player.height
     )
   },
   update() {
-    const horizon = ground.metadata.y
-    player.metadata.y += player.metadata.vSpeed
-    player.metadata.x += player.metadata.hSpeed
-    player.metadata.y = Math.min(
-      player.metadata.y,
-      horizon - player.metadata.height
-    )
-    if (player.metadata.airborn) {
-      console.log("??")
-      player.metadata.vSpeed += 1
+    const horizon = ground.origin.y
+    player.origin.y += player.vSpeed
+    player.origin.x += player.hSpeed
+
+    const yLimit = horizon - player.height
+    player.airborn = player.origin.y < yLimit
+    player.origin.y = Math.min(player.origin.y, yLimit)
+    if (player.airborn) {
+      player.vSpeed += 1
+    } else {
+      player.vSpeed = 0
     }
   }
-})
+}
 
 scene.add(background, ground, player)
 
@@ -80,10 +86,20 @@ const { width, height } = scene
 const quadTree = new QuadTree<Entity>({ x: 0, y: 0, width, height })
 
 game.loop.doWhile(() => {
-  const colliding = getDoBoundsOverlap(player.metadata, ground.metadata)
+  const playerBounds = {
+    ...player.origin,
+    width: player.width,
+    height: player.height
+  }
+  const groundBounds = {
+    ...ground.origin,
+    width: ground.width,
+    height: ground.height
+  }
+  const colliding = getDoBoundsOverlap(playerBounds, groundBounds)
   if (colliding) {
-    player.metadata.colliding = true
-    player.metadata.airborn = false
+    player.colliding = true
+    player.airborn = false
   }
 
   return true
@@ -94,22 +110,22 @@ game.loadScene(scene)
 window.addEventListener("keyup", e => {
   switch (e.key) {
     case "ArrowUp":
-      player.metadata.upPressed = false
+      player.upPressed = false
       break
     case "ArrowLeft":
-      player.metadata.leftPressed = false
-      if (!player.metadata.rightPressed) {
-        player.metadata.hSpeed = 0
+      player.leftPressed = false
+      if (!player.rightPressed) {
+        player.hSpeed = 0
       } else {
-        player.metadata.hSpeed = 1
+        player.hSpeed = 1
       }
       break
     case "ArrowRight":
-      player.metadata.rightPressed = false
-      if (!player.metadata.leftPressed) {
-        player.metadata.hSpeed = 0
+      player.rightPressed = false
+      if (!player.leftPressed) {
+        player.hSpeed = 0
       } else {
-        player.metadata.hSpeed = -1
+        player.hSpeed = -1
       }
       break
     default:
@@ -119,25 +135,27 @@ window.addEventListener("keyup", e => {
 window.addEventListener("keydown", e => {
   switch (e.key) {
     case "ArrowUp":
-      if (!player.metadata.upPressed && !player.metadata.airborn) {
-        player.metadata.upPressed = true
-        player.metadata.airborn = true
-        player.metadata.vSpeed = -10
+      if (!player.upPressed && !player.airborn) {
+        player.upPressed = true
+        player.airborn = true
+        player.vSpeed = -13
       }
       break
     case "ArrowLeft":
-      if (!player.metadata.leftPressed) {
-        player.metadata.leftPressed = true
-        player.metadata.hSpeed = -1
+      if (!player.leftPressed) {
+        player.leftPressed = true
+        player.hSpeed = -2
       }
       break
     case "ArrowRight":
-      if (!player.metadata.rightPressed) {
-        player.metadata.rightPressed = true
-        player.metadata.hSpeed = 1
+      if (!player.rightPressed) {
+        player.rightPressed = true
+        player.hSpeed = 2
       }
       break
     default:
       break
   }
 })
+
+window["game"] = game

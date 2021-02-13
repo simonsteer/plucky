@@ -1,34 +1,49 @@
+import { v4 as uuid } from "uuid"
 import { minMax } from "../utils"
-import { Game } from "../Game"
 import { JSONCoords, Point } from "../Point"
 import Particle from "./Particle"
+import { Scene } from "../Scene"
 
 export default class ParticleSystem {
   spawnInterval: number
   viscosity: number
-  game: Game
+  scene: Scene
   spawn: () => Particle
   particles: Particle[] = []
   paused = false
+  origin: JSONCoords
+  id: string
 
   constructor(
-    game: Game,
+    scene: Scene,
     {
       spawn,
       spawnInterval = 0,
-      viscosity = 0.9
-    }: { spawn: () => Particle; spawnInterval?: number; viscosity?: number }
+      viscosity = 0.9,
+      origin,
+      update,
+      id
+    }: {
+      id?: string
+      spawn: () => Particle
+      spawnInterval?: number
+      viscosity?: number
+      origin: JSONCoords
+      update?(): void
+    }
   ) {
-    this.game = game
+    if (update) {
+      this.update = () => {
+        update()
+        this._update()
+      }
+    }
+    this.id = id || uuid()
+    this.origin = origin
+    this.scene = scene
     this.spawn = spawn
     this.spawnInterval = spawnInterval
     this.viscosity = viscosity
-  }
-
-  mapParticles<R extends any>(
-    callback: (particle: Particle, index: number) => R
-  ) {
-    return this.particles.map(callback)
   }
 
   applyRepeller(repeller: JSONCoords, power: number) {
@@ -37,8 +52,8 @@ export default class ParticleSystem {
 
   // TODO: what might this look like if the attractor had shape/size?
   applyAttractor(attractor: JSONCoords, power: number) {
-    this.mapParticles(particle => {
-      const direction = Point.subtract(attractor, particle.position.raw)
+    this.particles.forEach(particle => {
+      const direction = Point.subtract(attractor, particle.origin.raw)
       const distance = minMax(Point.magnitude(direction), 1, 100)
       const force = power / distance ** 2
 
@@ -49,21 +64,16 @@ export default class ParticleSystem {
   }
 
   applyForce(force: JSONCoords) {
-    this.mapParticles(particle => particle.applyForce(force))
+    this.particles.forEach(particle => particle.applyForce(force))
     return this
   }
 
   applyGravity(gravity: JSONCoords) {
-    this.mapParticles(particle => {
-      const gravityForce = Point.multiply(gravity, particle.mass)
+    this.particles.forEach(particle => {
+      const gravityForce = Point.multiply(gravity, particle.mass / 1000)
       particle.applyForce(gravityForce)
     })
     return this
-  }
-
-  run() {
-    this.update()
-    this.render()
   }
 
   pause() {
@@ -76,8 +86,16 @@ export default class ParticleSystem {
     return this
   }
 
-  timestamp = performance.now()
+  render() {
+    this.particles.forEach(particle => particle.render())
+  }
+
   update() {
+    this._update()
+  }
+
+  timestamp = performance.now()
+  private _update() {
     if (this.paused) return
 
     for (let i = this.particles.length - 1; i >= 0; i--) {
@@ -91,11 +109,11 @@ export default class ParticleSystem {
     const elapsed = performance.now() - this.timestamp
     if (elapsed >= this.spawnInterval) {
       this.timestamp = performance.now()
-      this.particles.push(this.spawn())
-    }
-  }
 
-  render() {
-    this.mapParticles(particle => particle.render())
+      const particle = this.spawn()
+      particle.origin = new Point(this.origin)
+
+      this.particles.push(particle)
+    }
   }
 }

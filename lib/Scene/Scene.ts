@@ -2,6 +2,7 @@ import { Entity } from "../Entity"
 import { Game } from "../Game"
 import { v4 as uuid } from "uuid"
 import { JSONCoords } from "../Point"
+import { accessSync } from "fs"
 
 export default class Scene {
   id = uuid()
@@ -27,10 +28,13 @@ export default class Scene {
   }
 
   remove(...entities: Entity[]) {
-    const ids = entities.reduce((acc, entity) => {
-      acc[entity.id] = true
-      return acc
-    }, {} as { [key: string]: true })
+    const ids = entities.reduce(
+      (acc, entity) => ({
+        ...acc,
+        [entity.id]: true
+      }),
+      {} as { [key: string]: true }
+    )
 
     this.entities = this.entities.filter(e => !(e.id in ids))
     return this

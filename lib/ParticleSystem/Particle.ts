@@ -1,37 +1,38 @@
+import { v4 as uuid } from "uuid"
+import { Entity } from "../Entity"
 import { JSONCoords, Point } from "../Point"
 
-export default class Particle {
+export interface ParticleConstructor extends Pick<Entity, "render"> {
   lifespan: number
+  mass: number
+  weight?: number
+  velocity: JSONCoords
+  acceleration: JSONCoords
+}
+export default class Particle {
+  id: string
   timestamp: number
+  origin: Point
+
+  lifespan: number
   mass: number
   weight: number
   velocity: Point
   acceleration: Point
-  position: Point
-  render: () => void
 
   constructor({
-    lifespan,
-    position,
-    velocity,
+    render,
     acceleration,
     mass,
-    weight,
-    render
-  }: {
-    lifespan: number
-    position: JSONCoords
-    velocity: JSONCoords
-    acceleration: JSONCoords
-    mass: number
-    weight: number
-    render: () => void
-  }) {
-    this.render = render
+    weight = 1,
+    lifespan,
+    velocity
+  }: ParticleConstructor) {
+    if (render) this.render = render
+    this.id = uuid()
     this.lifespan = lifespan
     this.mass = mass
     this.weight = weight
-    this.position = new Point(position)
     this.velocity = new Point(velocity)
     this.acceleration = new Point(acceleration)
     this.timestamp = performance.now()
@@ -58,14 +59,20 @@ export default class Particle {
     return !this.dead
   }
 
+  render() {}
+
   update() {
-    this.velocity.add(this.acceleration)
-    this.position.add(this.velocity)
+    this._update()
   }
 
   applyForce(force: JSONCoords) {
     const forceVector = new Point(force)
     forceVector.divide(this.mass)
     this.acceleration.add(forceVector)
+  }
+
+  private _update() {
+    this.velocity.add(this.acceleration)
+    this.origin.add(this.velocity)
   }
 }

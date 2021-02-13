@@ -29,11 +29,13 @@ const game = new Game({
   viewportHeight: 240
 })
 const scene = new Scene(game)
-const background = new Entity(game, {
+const background: Entity = {
+  origin: { x: 0, y: 0 },
+  id: "bg",
   render() {
     forestSpriteSheet.render({ game, x: 0, y: 0, instanceId: "vforest" })
   }
-})
+}
 
 const DIRECTIONS = {
   ArrowRight: "ArrowRight",
@@ -57,70 +59,70 @@ window.addEventListener("keyup", e => {
   }
 })
 
-const character = new Entity(game, {
-  renderLayer: 1,
-  metadata: {
-    isMoving: false,
-    direction: "ArrowDown" as DirectionKey,
+const character = {
+  id: "player",
+  origin: {
     x: 64,
-    y: 64,
-    spriteState: "FaceDown" as CharacterSpriteSheetState,
-    movementSpeed: 1,
-    get coords(): JSONCoords {
-      return {
-        x: Math.floor(character.metadata.x / 16),
-        y: Math.floor(character.metadata.y / 16)
-      }
+    y: 64
+  },
+  isMoving: false,
+  direction: "ArrowDown" as DirectionKey,
+  spriteState: "FaceDown" as CharacterSpriteSheetState,
+  movementSpeed: 1,
+  get coords(): JSONCoords {
+    return {
+      x: Math.floor(character.origin.x / 16),
+      y: Math.floor(character.origin.y / 16)
     }
   },
   render() {
-    const { x, y } = character.metadata
+    const { x, y } = character.origin
     characterSpriteSheet.render({
       game,
       x,
       y: y - 16,
       instanceId: character.id,
-      state: character.metadata.spriteState
+      state: character.spriteState
     })
   },
   update() {
-    if (character.metadata.isMoving) {
-      switch (character.metadata.spriteState) {
+    if (character.isMoving) {
+      switch (character.spriteState) {
         case "WalkUp":
-          character.metadata.y -= character.metadata.movementSpeed
+          character.origin.y -= character.movementSpeed
           break
         case "WalkDown":
-          character.metadata.y += character.metadata.movementSpeed
+          character.origin.y += character.movementSpeed
           break
         case "WalkLeft":
-          character.metadata.x -= character.metadata.movementSpeed
+          character.origin.x -= character.movementSpeed
           break
         case "WalkRight":
-          character.metadata.x += character.metadata.movementSpeed
+          character.origin.x += character.movementSpeed
           break
         default:
           break
       }
-      if (character.metadata.x % 16 === 0 && character.metadata.y % 16 === 0) {
-        character.metadata.isMoving = false
+      if (character.origin.x % 16 === 0 && character.origin.y % 16 === 0) {
+        character.isMoving = false
       }
-      if (character.metadata.isMoving) {
+      if (character.isMoving) {
         return
       }
     }
 
     const topKey = pressed[0]
     if (topKey) {
-      character.metadata.isMoving = true
-      character.metadata.direction = topKey
-      character.metadata.spriteState = ("Walk" +
+      character.isMoving = true
+      character.direction = topKey
+      character.spriteState = ("Walk" +
         topKey.slice(5)) as CharacterSpriteSheetState
     } else {
-      character.metadata.spriteState = ("Face" +
-        character.metadata.direction.slice(5)) as CharacterSpriteSheetState
+      character.spriteState = ("Face" +
+        character.direction.slice(5)) as CharacterSpriteSheetState
     }
   }
-})
+}
 
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key in DIRECTIONS) {
@@ -143,5 +145,5 @@ game.on("sceneUnmounted", () => {
 })
 
 scene.add(background, character)
-scene.cameraOrigin = { x: character.metadata.x, y: character.metadata.y }
+scene.cameraOrigin = character.origin
 game.loadScene(scene)

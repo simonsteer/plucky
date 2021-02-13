@@ -1,4 +1,4 @@
-import { Entity } from "../Entity"
+import { v4 as uuid } from "uuid"
 import { Game } from "../Game"
 
 const LOOP_INTERVAL = 1000 / 60
@@ -32,20 +32,18 @@ export default class Loop {
     this.id = requestAnimationFrame(animateLoop)
   }
 
+  get currentScene() {
+    return this.game.currentScene
+  }
+
   private render = (timestamp: number) => {
     if (!this.didStart) this.didStart = true
-    const scene = this.game.currentScene
+    if (!this.currentScene) return
 
-    if (!scene) return
-
-    const entities: Entity[] = []
-    scene.entities.forEach(entity =>
-      entities.splice(entity.renderLayer, 0, entity)
-    )
-
-    entities.map(entity => entity.update())
-    this.effects = this.effects.filter(effect => effect())
-    entities.map(entity => entity.render())
+    this.currentScene.forEach(entity => {
+      entity.update?.()
+      entity.render?.()
+    })
   }
 
   /**
@@ -56,7 +54,17 @@ export default class Loop {
    * execution the next time the loop runs (see `Loop.tween` for implementation example).
    */
   doWhile(callback: (timeElapsed: number) => boolean) {
+    if (!this.currentScene) return Promise.resolve(0)
+
     return new Promise<number>(resolve => {
+      const entity = {
+        id: uuid(),
+        origin: { x: 0, y: 0 },
+        update() {
+          callbackWithTimeElapsed()
+        }
+      }
+
       let startTime: number
       const callbackWithTimeElapsed = () => {
         if (startTime === undefined) {
@@ -64,10 +72,14 @@ export default class Loop {
         }
         const timeElapsed = performance.now() - startTime
         const result = callback(timeElapsed)
-        if (result === false) resolve(timeElapsed)
+        if (result === false) {
+          this.currentScene?.remove(entity)
+          resolve(timeElapsed)
+        }
         return result
       }
-      this.effects.push(callbackWithTimeElapsed)
+
+      this.currentScene?.add(entity)
     })
   }
 

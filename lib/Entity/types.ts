@@ -1,6 +1,8 @@
-export interface EntityConfig<Metadata extends {}> {
-  metadata?: Metadata
-  renderLayer?: number
+import { JSONCoords } from "../Point"
+
+export interface Entity {
+  id: string
+  origin: JSONCoords
   render?: () => void
   update?: () => void
 }
