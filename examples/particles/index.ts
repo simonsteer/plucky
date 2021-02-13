@@ -8,18 +8,6 @@ const game = new Game({
 
 const scene = new Scene(game)
 
-const mousePosition = { x: 0, y: 0 }
-const handleMouseMove = (e: MouseEvent) => {
-  mousePosition.x = e.clientX
-  mousePosition.y = e.clientY
-}
-game.on("sceneMounted", () => {
-  window.addEventListener("mousemove", handleMouseMove)
-})
-game.on("sceneUnmounted", () => {
-  window.removeEventListener("mousemove", handleMouseMove)
-})
-
 const background = {
   origin: { x: 0, y: 0 },
   id: "background",
