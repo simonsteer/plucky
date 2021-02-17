@@ -56,6 +56,20 @@ export default class Game {
     this.loop = new Loop(this)
   }
 
+  drawRect(x: number, y: number, width: number, height: number, color: string) {
+    this.context.fillStyle = color
+    this.context.fillRect(x, y, width, height)
+    return this
+  }
+
+  drawCirc(x: number, y: number, diameter: number, color: string) {
+    this.context.beginPath()
+    this.context.arc(x, y, diameter, 0, 2 * Math.PI)
+    this.context.fillStyle = color
+    this.context.fill()
+    return this
+  }
+
   loop: Loop
 
   currentScene?: Scene

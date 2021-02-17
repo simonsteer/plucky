@@ -11,12 +11,12 @@ const background = {
   id: "bg",
   origin: { x: 0, y: 0 },
   render() {
-    game.context.fillStyle = "black"
-    game.context.fillRect(
+    game.drawRect(
       0,
       0,
       game.viewportDimensions.width,
-      game.viewportDimensions.height
+      game.viewportDimensions.height,
+      "black"
     )
   }
 }
@@ -30,13 +30,12 @@ const ground = {
   width: game.viewportDimensions.width,
   height: 30,
   render() {
-    game.context.fillStyle = "green"
     const {
       origin: { x, y },
       width,
       height
     } = ground
-    game.context.fillRect(x, y, width, height)
+    game.drawRect(x, y, width, height, "green")
   }
 }
 
@@ -56,12 +55,12 @@ const player = {
   upPressed: false,
   colliding: false,
   render() {
-    game.context.fillStyle = "purple"
-    game.context.fillRect(
+    game.drawRect(
       player.origin.x,
       player.origin.y,
       player.width,
-      player.height
+      player.height,
+      "purple"
     )
   },
   update() {

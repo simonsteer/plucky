@@ -5,7 +5,8 @@
     "jsx": "preserve",
     "sourceMap": true,
     "strictNullChecks": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "rootDir": "./lib"
   },
-  "exclude": ["node_modules", "**/node_modules/*"]
+  "exclude": ["node_modules", "**/node_modules/*", "./examples"]
 }

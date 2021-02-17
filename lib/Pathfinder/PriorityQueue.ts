@@ -58,7 +58,7 @@ export default class PriorityQueue {
     const element = this.queue.shift()
 
     // Remove the key from the `_keys` set
-    this.keys.delete(element.key)
+    element?.key && this.keys.delete(element.key)
 
     return element
   }

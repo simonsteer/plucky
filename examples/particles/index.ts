@@ -12,12 +12,12 @@ const background = {
   origin: { x: 0, y: 0 },
   id: "background",
   render() {
-    game.context.fillStyle = "rgb(200,200,255)"
-    game.context.fillRect(
+    game.drawRect(
       0,
       0,
       game.viewportDimensions.width,
-      game.viewportDimensions.height
+      game.viewportDimensions.height,
+      "rgb(200,200,255)"
     )
   }
 }
@@ -42,16 +42,12 @@ const ps = new ParticleSystem(scene, {
         y: -Math.random() + Math.random()
       },
       render() {
-        game.context.beginPath()
-        game.context.arc(
+        game.drawCirc(
           particle.origin.x,
           particle.origin.y,
-          particle.mass,
-          0,
-          2 * Math.PI
+          10,
+          `rgba(145,35,200,${particle.life})`
         )
-        game.context.fillStyle = `rgba(145,35,200,${particle.life})`
-        game.context.fill()
       }
     })
 
