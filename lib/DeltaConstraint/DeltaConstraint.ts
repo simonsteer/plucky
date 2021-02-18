@@ -42,7 +42,8 @@ export default class DeltaConstraint {
         height: Math.max(...yValues) - Math.min(...yValues) + 1
       }
     },
-    () => `${this.timestamp}`
+    () => `${this.timestamp}`,
+    1
   )
 
   adjacent = memoize(
