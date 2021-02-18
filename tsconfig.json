@@ -6,7 +6,9 @@
     "sourceMap": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
-    "rootDir": "./lib"
+    "rootDir": "./lib",
+    "outDir": "./dist",
+    "declaration": true
   },
   "exclude": ["node_modules", "**/node_modules/*", "./examples"]
 }

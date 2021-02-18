@@ -2,10 +2,11 @@
   "name": "plucky",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "parcel ./src/index.html",
+    "build": "tsc",
     "platformer": "parcel ./examples/platformer/index.html",
     "particles": "parcel ./examples/particles/index.html",
     "pokemon": "parcel ./examples/pokemon/index.html"
